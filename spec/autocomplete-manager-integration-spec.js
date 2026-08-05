@@ -23,10 +23,7 @@ describe("Autocomplete Manager", () => {
   let autocompleteManager, editor, editorView, gutterWidth, mainModule, workspaceElement;
 
   let pixelLeftForBufferPosition = (bufferPosition) => {
-    let gutter = editorView.querySelector(".gutter");
-    if (!gutter) {
-      gutter = editorView.shadowRoot.querySelector(".gutter");
-    }
+    const gutter = editorView.querySelector(".gutter");
 
     gutterWidth = gutter.offsetWidth;
     let left = editorView.pixelPositionForBufferPosition(bufferPosition).left;
