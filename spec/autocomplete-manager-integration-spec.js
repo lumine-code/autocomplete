@@ -1751,7 +1751,8 @@ describe("Autocomplete Manager", () => {
         expect(editorView.querySelector(".autocomplete")).toExist();
       });
 
-      it("accepts the suggestion if there is one", async () => {
+      it("accepts the suggestion if there is one and auto-confirm single suggestion is enabled", async () => {
+        atom.config.set("autocomplete.enableAutoConfirmSingleSuggestion", true);
         spyOn(provider, "getSuggestions").andCallFake((_) => [{ text: "omgok" }]);
 
         triggerAutocompletion(editor);
@@ -1766,6 +1767,7 @@ describe("Autocomplete Manager", () => {
       });
 
       it("does not accept the suggestion if the event detail is activatedManually: false", async () => {
+        atom.config.set("autocomplete.enableAutoConfirmSingleSuggestion", true);
         spyOn(provider, "getSuggestions").andCallFake((_) => [{ text: "omgok" }]);
 
         triggerAutocompletion(editor);

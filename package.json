@@ -147,7 +147,7 @@
       "title": "Automatically Confirm Single Suggestion",
       "description": "If enabled, automatically insert suggestion on manual activation with 'autocomplete:activate' when there is only one match.",
       "type": "boolean",
-      "default": true
+      "default": false
     },
     "suggestionListFollows": {
       "title": "Suggestions List Follows",
@@ -188,7 +188,7 @@
       "title": "Enable Extended Unicode Support",
       "description": "Identifies non-latin alphabet characters as letters",
       "type": "boolean",
-      "default": false
+      "default": true
     },
     "maxSuggestions": {
       "title": "Maximum Suggestions",
