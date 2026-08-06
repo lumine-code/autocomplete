@@ -246,9 +246,8 @@
     }
   },
   "dependencies": {
-    "atom-slick": "^2.0.0",
-    "picomatch": "^4.0.5",
-    "selector-kit": "^0.1.0"
+    "@lumine-code/selector-kit": "github:lumine-code/selector-kit#f27c31ac00885f5fb530233ec006879a1e0dea5c",
+    "picomatch": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
