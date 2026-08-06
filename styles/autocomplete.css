@@ -49,7 +49,7 @@ autocomplete-suggestion-list.select-list.popover-list {
   }
 
   .suggestion-description-content {
-    font-size: calc(var(--font-size) + 1px);
+    font-size: var(--prose-font-size);
     font-family: var(--font-family);
     max-height: 33vh;
     display: block;
@@ -96,7 +96,7 @@ autocomplete-suggestion-list.select-list.popover-list {
   }
 
   .suggestion-description-more-link {
-    font-size: calc(var(--font-size) + 1px);
+    font-size: var(--prose-font-size);
     font-family: var(--font-family);
     color: var(--text-color-info);
   }
