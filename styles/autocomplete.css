@@ -14,7 +14,78 @@ autocomplete-suggestion-list {
 }
 
 atom-overlay.autocomplete {
+  --autocomplete-arrow-size: 6px;
+
   z-index: 12; /* higher than docks */
+}
+
+/* A pointer at the word being completed, drawn twice: the border colour first,
+   the background a pixel over it, which is how a bordered box grows a
+   triangle. It hangs on the wrapper rather than on the list, because the list
+   clips its own overflow to round off its rows — and the wrapper is what the
+   editor tells where the anchor ended up. `--overlay-anchor-offset` is how far
+   the anchored position sits inside the popup after any shift off the window
+   edge, and `above` says the popup was flipped over the line. */
+atom-overlay.autocomplete::before,
+atom-overlay.autocomplete::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  /* Three things decide where it points, and the editor reports the first
+     two: where the anchored position sits inside the list's box, and how far
+     the list stands from this wrapper — it shifts itself left to line its
+     suggestions up with the word. The third is the package's own: how much of
+     the word has been typed, which is the distance from the anchor to the
+     caret. */
+  /* Clamped to the popup's own edges, not the wrapper's: the list hangs its
+     icon column left of the wrapper, so with nothing typed yet the right
+     place for the arrow is left of where the wrapper begins. The wrapper's
+     right edge and the list's coincide, so only the floor needs the margin. */
+  left: clamp(
+    calc(var(--overlay-margin-left, 0px) + var(--component-border-radius)),
+    calc(
+      var(--overlay-anchor-offset, 0px) + var(--overlay-margin-left, 0px) +
+        var(--autocomplete-caret-offset, 0px) - var(--autocomplete-arrow-size)
+    ),
+    calc(100% - var(--autocomplete-arrow-size) * 2 - var(--component-border-radius))
+  );
+  border: var(--autocomplete-arrow-size) solid transparent;
+  border-top-width: 0;
+  border-bottom-color: var(--overlay-border-color);
+}
+
+atom-overlay.autocomplete::after {
+  border-bottom-color: var(--overlay-background-color);
+  top: 1px;
+}
+
+atom-overlay.autocomplete[data-overlay-position="above"] {
+  &::before,
+  &::after {
+    border-top-width: var(--autocomplete-arrow-size);
+    border-bottom-width: 0;
+    border-top-color: var(--overlay-border-color);
+    top: auto;
+    bottom: 0;
+  }
+
+  &::after {
+    border-top-color: var(--overlay-background-color);
+    bottom: 1px;
+  }
+}
+
+/* The pointer meets the popup exactly where its first row is, so when that
+   row is the selected one it takes the selection's colour and the two read as
+   one shape. Flipped above the line it meets the last row instead. */
+atom-overlay.autocomplete:has(ol.list-group li:first-child.selected)::after {
+  border-bottom-color: var(--background-color-selected);
+}
+
+atom-overlay.autocomplete[data-overlay-position="above"]:has(
+    ol.list-group li:last-child.selected
+  )::after {
+  border-top-color: var(--background-color-selected);
 }
 
 autocomplete-suggestion-list.select-list.popover-list {
@@ -22,6 +93,9 @@ autocomplete-suggestion-list.select-list.popover-list {
   display: inline-block;
   min-width: 243px; /* Try and fail until the specs pass */
   padding: 0;
+  /* Room for the pointer above and below, whichever side the popup lands on.
+     The editor reads these margins when it decides whether it still fits. */
+  margin: var(--autocomplete-arrow-size) 0;
   overflow: hidden;
   color: var(--text-color);
 
