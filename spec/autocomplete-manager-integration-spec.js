@@ -2255,26 +2255,26 @@ defm`);
         spyOn(provider, "getSuggestions").andCallFake(() => [
           { text: "ab", description: "it is ab" },
         ]);
-        spyOn(atom, "openExternal");
+        spyOn(atom.shell, "openExternal");
 
         triggerAutocompletion(editor, true, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
         atom.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
-        expect(atom.openExternal).toHaveBeenCalled();
+        expect(atom.shell.openExternal).toHaveBeenCalled();
       });
 
       it("does not trigger openExternal on keybind if there is not a description", async () => {
         spyOn(provider, "getSuggestions").andCallFake(() => [{ text: "ab" }]);
-        spyOn(atom, "openExternal");
+        spyOn(atom.shell, "openExternal");
 
         triggerAutocompletion(editor, true, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
         atom.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
-        expect(atom.openExternal).not.toHaveBeenCalled();
+        expect(atom.shell.openExternal).not.toHaveBeenCalled();
       });
     });
   });
