@@ -5,25 +5,25 @@ describe("Async providers", () => {
   let editorView, editor, mainModule, autocompleteManager, registration;
 
   beforeEach(async () => {
-    atom.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
+    lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
 
     // Set to live completion
-    atom.config.set("autocomplete.enableAutoActivation", true);
-    atom.config.set("editor.fontSize", "16");
+    lumine.config.set("autocomplete.enableAutoActivation", true);
+    lumine.config.set("editor.fontSize", "16");
 
     // Set the completion delay
-    atom.config.set("autocomplete.autoActivationDelay", 100);
+    lumine.config.set("autocomplete.autoActivationDelay", 100);
 
-    let workspaceElement = atom.views.getView(atom.workspace);
+    let workspaceElement = lumine.views.getView(lumine.workspace);
     jasmine.attachToDOM(workspaceElement);
 
-    editor = await atom.workspace.open("sample.js");
+    editor = await lumine.workspace.open("sample.js");
 
-    await atom.packages.activatePackage("language-javascript");
+    await lumine.packages.activatePackage("language-javascript");
 
     // Activate the package
-    mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+    mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
 
     await conditionPromise(() => {
       autocompleteManager = mainModule.autocompleteManager;
@@ -55,7 +55,7 @@ describe("Async providers", () => {
         },
         scopeSelector: ".source.js",
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testAsyncProvider,
@@ -95,7 +95,7 @@ describe("Async providers", () => {
           });
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testAsyncProvider,
@@ -103,7 +103,7 @@ describe("Async providers", () => {
     });
 
     it("does not show the suggestion list when it is triggered then no longer needed", async () => {
-      editorView = atom.views.getView(editor);
+      editorView = lumine.views.getView(editor);
 
       editor.moveToBottom();
       editor.insertText("o");

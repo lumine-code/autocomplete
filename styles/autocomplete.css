@@ -13,7 +13,7 @@ autocomplete-suggestion-list {
   --autocomplete-item-side-padding: 0.6em;
 }
 
-atom-overlay.autocomplete {
+lumine-overlay.autocomplete {
   --autocomplete-arrow-size: 6px;
 
   z-index: 12; /* higher than docks */
@@ -26,8 +26,8 @@ atom-overlay.autocomplete {
    editor tells where the anchor ended up. `--overlay-anchor-offset` is how far
    the anchored position sits inside the popup after any shift off the window
    edge, and `above` says the popup was flipped over the line. */
-atom-overlay.autocomplete::before,
-atom-overlay.autocomplete::after {
+lumine-overlay.autocomplete::before,
+lumine-overlay.autocomplete::after {
   content: "";
   position: absolute;
   top: 0;
@@ -54,12 +54,12 @@ atom-overlay.autocomplete::after {
   border-bottom-color: var(--overlay-border-color);
 }
 
-atom-overlay.autocomplete::after {
+lumine-overlay.autocomplete::after {
   border-bottom-color: var(--overlay-background-color);
   top: 1px;
 }
 
-atom-overlay.autocomplete[data-overlay-position="above"] {
+lumine-overlay.autocomplete[data-overlay-position="above"] {
   &::before,
   &::after {
     border-top-width: var(--autocomplete-arrow-size);
@@ -78,11 +78,11 @@ atom-overlay.autocomplete[data-overlay-position="above"] {
 /* The pointer meets the popup exactly where its first row is, so when that
    row is the selected one it takes the selection's colour and the two read as
    one shape. Flipped above the line it meets the last row instead. */
-atom-overlay.autocomplete:has(ol.list-group li:first-child.selected)::after {
+lumine-overlay.autocomplete:has(ol.list-group li:first-child.selected)::after {
   border-bottom-color: var(--background-color-selected);
 }
 
-atom-overlay.autocomplete[data-overlay-position="above"]:has(
+lumine-overlay.autocomplete[data-overlay-position="above"]:has(
     ol.list-group li:last-child.selected
   )::after {
   border-top-color: var(--background-color-selected);
@@ -148,7 +148,7 @@ autocomplete-suggestion-list.select-list.popover-list {
     /* `applySyntaxHighlighting` swaps each fence for a read-only editor, so
        both shapes have to stay inside the popup. */
     pre,
-    atom-text-editor {
+    lumine-text-editor {
       max-width: 100%;
       margin: 0.5em 0;
       padding: 0.4em 0.6em;

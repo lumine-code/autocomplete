@@ -21,17 +21,17 @@ describe("Autocomplete Manager commit characters", () => {
   };
 
   beforeEach(async () => {
-    atom.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
+    lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
-    atom.config.set("autocomplete.enableAutoActivation", true);
-    atom.config.set("autocomplete.autoActivationDelay", 0);
-    atom.config.set("autocomplete.commitCharacters", true);
-    atom.config.set("editor.fontSize", "16");
-    jasmine.attachToDOM(atom.views.getView(atom.workspace));
+    lumine.config.set("autocomplete.enableAutoActivation", true);
+    lumine.config.set("autocomplete.autoActivationDelay", 0);
+    lumine.config.set("autocomplete.commitCharacters", true);
+    lumine.config.set("editor.fontSize", "16");
+    jasmine.attachToDOM(lumine.views.getView(lumine.workspace));
 
-    editor = await atom.workspace.open("");
-    editorView = atom.views.getView(editor);
-    mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+    editor = await lumine.workspace.open("");
+    editorView = lumine.views.getView(editor);
+    mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
     await conditionPromise(
       () => mainModule.autocompleteManager && mainModule.autocompleteManager.ready,
     );
@@ -60,7 +60,7 @@ describe("Autocomplete Manager commit characters", () => {
 
     editor.insertText("c");
     await waitForAutocomplete(editor);
-    atom.commands.dispatch(editorView, "core:move-down");
+    lumine.commands.dispatch(editorView, "core:move-down");
 
     editor.insertText("(");
     await conditionPromise(() => editor.getText() === "constructor(");
@@ -88,14 +88,14 @@ describe("Autocomplete Manager commit characters", () => {
     // With the list open but no activation on keystroke, nothing else can ask
     // the provider for suggestions, so the call count is the whole story: the
     // deletion of the character alone would otherwise request a new list.
-    atom.config.set("autocomplete.enableAutoActivation", false);
+    lumine.config.set("autocomplete.enableAutoActivation", false);
     registerProvider([
       { text: "console", commitCharacters: ["("] },
       { text: "constructor", commitCharacters: ["("] },
     ]);
 
     editor.insertText("c");
-    atom.commands.dispatch(editorView, "autocomplete:activate");
+    lumine.commands.dispatch(editorView, "autocomplete:activate");
     await waitForAutocomplete(editor);
     expect(provider.calls).toBe(1);
 
@@ -108,7 +108,7 @@ describe("Autocomplete Manager commit characters", () => {
   });
 
   it("stays out of the way when the setting is off", async () => {
-    atom.config.set("autocomplete.commitCharacters", false);
+    lumine.config.set("autocomplete.commitCharacters", false);
     registerProvider([
       { text: "console", commitCharacters: ["("] },
       { text: "constructor", commitCharacters: ["("] },
@@ -148,7 +148,7 @@ describe("Autocomplete Manager commit characters", () => {
   });
 
   it("stays out of the way when no list is showing", async () => {
-    atom.config.set("autocomplete.enableAutoActivation", false);
+    lumine.config.set("autocomplete.enableAutoActivation", false);
     registerProvider([{ text: "console", commitCharacters: ["("] }]);
 
     editor.insertText("c");

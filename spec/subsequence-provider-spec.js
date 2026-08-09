@@ -1,4 +1,4 @@
-const { TextEditor } = require("atom");
+const { TextEditor } = require("lumine");
 const { conditionPromise } = require("./spec-helper");
 const path = require("path");
 
@@ -21,25 +21,25 @@ describe("SubsequenceProvider", () => {
   let [editor, mainModule, autocompleteManager, provider] = [];
 
   beforeEach(async () => {
-    atom.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
+    lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
 
     // Set to live completion
-    atom.config.set("autocomplete.enableAutoActivation", true);
-    atom.config.set("autocomplete.defaultProvider", "Subsequence");
+    lumine.config.set("autocomplete.enableAutoActivation", true);
+    lumine.config.set("autocomplete.defaultProvider", "Subsequence");
 
     // Set the completion delay
-    atom.config.set("autocomplete.autoActivationDelay", 100);
+    lumine.config.set("autocomplete.autoActivationDelay", 100);
 
     // Disable locality bonus
-    atom.config.set("autocomplete.useLocalityBonus", false);
+    lumine.config.set("autocomplete.useLocalityBonus", false);
 
-    let workspaceElement = atom.views.getView(atom.workspace);
+    let workspaceElement = lumine.views.getView(lumine.workspace);
     jasmine.attachToDOM(workspaceElement);
 
-    editor = await atom.workspace.open("sample.js");
-    await atom.packages.activatePackage("language-javascript");
-    mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+    editor = await lumine.workspace.open("sample.js");
+    await lumine.packages.activatePackage("language-javascript");
+    mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
 
     await conditionPromise(
       () => mainModule.autocompleteManager && mainModule.autocompleteManager.ready,
@@ -98,8 +98,8 @@ describe("SubsequenceProvider", () => {
   });
 
   it("does not return the prefix as a suggestion", async () => {
-    atom.config.set("language.nonWordCharacters", "-");
-    atom.config.set("autocomplete.extraWordCharacters", "-");
+    lumine.config.set("language.nonWordCharacters", "-");
+    lumine.config.set("autocomplete.extraWordCharacters", "-");
 
     editor.moveToBottom();
     editor.insertText("--qu");
@@ -122,8 +122,8 @@ describe("SubsequenceProvider", () => {
   });
 
   it("does not output suggestions from the other buffer", async () => {
-    await atom.packages.activatePackage("language-coffee-script");
-    const coffeeEditor = await atom.workspace.open("sample.coffee");
+    await lumine.packages.activatePackage("language-coffee-script");
+    const coffeeEditor = await lumine.workspace.open("sample.coffee");
     const suggestions = await suggestionsForPrefix(provider, coffeeEditor, "item");
 
     expect(suggestions).toHaveLength(0);
@@ -148,7 +148,7 @@ describe("SubsequenceProvider", () => {
   });
 
   describe("when autocomplete.minimumWordLength is > 1", () => {
-    beforeEach(() => atom.config.set("autocomplete.minimumWordLength", 3));
+    beforeEach(() => lumine.config.set("autocomplete.minimumWordLength", 3));
 
     it("only returns results when the prefix is at least the min word length", async () => {
       editor.insertText("function aNewFunction(){};");
@@ -166,7 +166,7 @@ describe("SubsequenceProvider", () => {
   });
 
   describe("when autocomplete.minimumWordLength is 0", () => {
-    beforeEach(() => atom.config.set("autocomplete.minimumWordLength", 0));
+    beforeEach(() => lumine.config.set("autocomplete.minimumWordLength", 0));
 
     it("only returns results when the prefix is at least the min word length", async () => {
       editor.insertText("function aNewFunction(){};");
@@ -224,17 +224,17 @@ describe("SubsequenceProvider", () => {
       const scopeSelector = editor.getLastCursor().getScopeDescriptor().getScopeChain();
       editor.insertText("good$noodles good-beef ");
 
-      atom.config.set("language.nonWordCharacters", "$-", { scopeSelector });
+      lumine.config.set("language.nonWordCharacters", "$-", { scopeSelector });
       let sugs = await suggestionsForPrefix(provider, editor, "good");
       expect(sugs).not.toContain("good$noodles");
       expect(sugs).not.toContain("good-beef");
 
-      atom.config.set("autocomplete.extraWordCharacters", "-", { scopeSelector });
+      lumine.config.set("autocomplete.extraWordCharacters", "-", { scopeSelector });
       sugs = await suggestionsForPrefix(provider, editor, "good");
       expect(sugs).toContain("good-beef");
       expect(sugs).not.toContain("good$noodles");
 
-      atom.config.set("language.nonWordCharacters", "-", { scopeSelector });
+      lumine.config.set("language.nonWordCharacters", "-", { scopeSelector });
       sugs = await suggestionsForPrefix(provider, editor, "good");
       expect(sugs).toContain("good-beef");
       expect(sugs).toContain("good$noodles");
@@ -243,14 +243,14 @@ describe("SubsequenceProvider", () => {
 
   describe("when includeCompletionsFromAllBuffers is enabled", () => {
     beforeEach(async () => {
-      atom.config.set("autocomplete.includeCompletionsFromAllBuffers", true);
+      lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", true);
 
-      await atom.packages.activatePackage("language-coffee-script");
-      editor = await atom.workspace.open("sample.coffee");
+      await lumine.packages.activatePackage("language-coffee-script");
+      editor = await lumine.workspace.open("sample.coffee");
     });
 
     afterEach(() => {
-      atom.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
+      lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
     });
 
     it("outputs unique suggestions", async () => {
@@ -289,8 +289,8 @@ describe("SubsequenceProvider", () => {
   //         }
   //       }
   //
-  //       atom.config.set('autocomplete.symbols', commentConfig, {scopeSelector: '.source.js .comment'})
-  //       atom.config.set('autocomplete.symbols', stringConfig, {scopeSelector: '.source.js .string'})
+  //       lumine.config.set('autocomplete.symbols', commentConfig, {scopeSelector: '.source.js .comment'})
+  //       lumine.config.set('autocomplete.symbols', stringConfig, {scopeSelector: '.source.js .string'})
   //     })
   //
   //     it('uses the config for the scope under the cursor', () => {
@@ -340,7 +340,7 @@ describe("SubsequenceProvider", () => {
   //         }
   //       }
   //
-  //       atom.config.set('autocomplete.symbols', commentConfig, {scopeSelector: '.source.js .comment'})
+  //       lumine.config.set('autocomplete.symbols', commentConfig, {scopeSelector: '.source.js .comment'})
   //     })
   //
   //     it('adds the suggestions to the results', () => {
@@ -373,7 +373,7 @@ describe("SubsequenceProvider", () => {
           ],
         },
       };
-      atom.config.set("autocomplete.symbols", commentConfig, {
+      lumine.config.set("autocomplete.symbols", commentConfig, {
         scopeSelector: ".source.js .comment",
       });
     });
@@ -396,7 +396,7 @@ describe("SubsequenceProvider", () => {
   describe("when the legacy completions array is used", () => {
     beforeEach(() => {
       editor.setText("// abcomment");
-      atom.config.set("language.completions", ["abcd", "abcde", "abcdef"], {
+      lumine.config.set("language.completions", ["abcd", "abcde", "abcdef"], {
         scopeSelector: ".source.js .comment",
       });
     });
@@ -416,7 +416,7 @@ describe("SubsequenceProvider", () => {
   });
 
   it("adds words to the wordlist with unicode characters", async () => {
-    atom.config.set("autocomplete.enableExtendedUnicodeSupport", true);
+    lumine.config.set("autocomplete.enableExtendedUnicodeSupport", true);
 
     let suggestions = await suggestionsForPrefix(provider, editor, "somē", { raw: true });
     expect(suggestions).toHaveLength(0);
@@ -461,7 +461,7 @@ describe("SubsequenceProvider", () => {
     });
 
     it("does not crash when includeCompletionsFromAllBuffers includes untracked buffers", async () => {
-      atom.config.set("autocomplete.includeCompletionsFromAllBuffers", true);
+      lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", true);
 
       // Create a non-workspace editor
       const nonWorkspaceEditor = new TextEditor();
@@ -473,15 +473,15 @@ describe("SubsequenceProvider", () => {
 
       expect(suggestions).toContain("quicksort");
 
-      atom.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
+      lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
     });
 
     it("shares words between fragment editors, like notebook cells", async () => {
       const cellA = new TextEditor();
       cellA.setText("cable = 1");
-      const registrationA = atom.textEditors.add(cellA, { role: "fragment" });
+      const registrationA = lumine.textEditors.add(cellA, { role: "fragment" });
       const cellB = new TextEditor();
-      const registrationB = atom.textEditors.add(cellB, { role: "fragment" });
+      const registrationB = lumine.textEditors.add(cellB, { role: "fragment" });
 
       const suggestions = await suggestionsForPrefix(provider, cellB, "cab");
       expect(suggestions).toContain("cable");
@@ -495,10 +495,10 @@ describe("SubsequenceProvider", () => {
     it("does not source completions from background or mini editors", async () => {
       const background = new TextEditor();
       background.setText("backstageword = 1");
-      const backgroundRegistration = atom.textEditors.add(background, { role: "background" });
+      const backgroundRegistration = lumine.textEditors.add(background, { role: "background" });
       const mini = new TextEditor({ mini: true });
       mini.setText("minifiedword");
-      const miniRegistration = atom.textEditors.add(mini);
+      const miniRegistration = lumine.textEditors.add(mini);
 
       const asker = new TextEditor();
       expect(await suggestionsForPrefix(provider, asker, "backstage")).not.toContain(
@@ -516,7 +516,7 @@ describe("SubsequenceProvider", () => {
     it("stops sourcing a fragment's buffer when it is unregistered", async () => {
       const cell = new TextEditor();
       cell.setText("cadence = 1");
-      const registration = atom.textEditors.add(cell, { role: "fragment" });
+      const registration = lumine.textEditors.add(cell, { role: "fragment" });
 
       const asker = new TextEditor();
       expect(await suggestionsForPrefix(provider, asker, "caden")).toContain("cadence");

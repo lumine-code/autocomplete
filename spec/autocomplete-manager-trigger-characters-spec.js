@@ -20,22 +20,22 @@ describe("Autocomplete Manager trigger characters", () => {
   };
 
   beforeEach(async () => {
-    atom.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
+    lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
-    atom.config.set("autocomplete.autoActivationDelay", 0);
-    atom.config.set("editor.fontSize", "16");
-    jasmine.attachToDOM(atom.views.getView(atom.workspace));
+    lumine.config.set("autocomplete.autoActivationDelay", 0);
+    lumine.config.set("editor.fontSize", "16");
+    jasmine.attachToDOM(lumine.views.getView(lumine.workspace));
 
-    editor = await atom.workspace.open("");
-    editorView = atom.views.getView(editor);
-    mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+    editor = await lumine.workspace.open("");
+    editorView = lumine.views.getView(editor);
+    mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
     await conditionPromise(
       () => mainModule.autocompleteManager && mainModule.autocompleteManager.ready,
     );
   });
 
   describe("when suggestions on keystroke are off", () => {
-    beforeEach(() => atom.config.set("autocomplete.enableAutoActivation", false));
+    beforeEach(() => lumine.config.set("autocomplete.enableAutoActivation", false));
 
     it("opens the list on a character the provider declared", async () => {
       registerProvider(new Set(["."]));
@@ -83,7 +83,7 @@ describe("Autocomplete Manager trigger characters", () => {
   });
 
   describe("the request it makes", () => {
-    beforeEach(() => atom.config.set("autocomplete.enableAutoActivation", true));
+    beforeEach(() => lumine.config.set("autocomplete.enableAutoActivation", true));
 
     it("reports the trigger character and its kind", async () => {
       registerProvider(new Set(["."]));
@@ -101,14 +101,14 @@ describe("Autocomplete Manager trigger characters", () => {
     });
 
     it("reports an invocation when the menu is asked for by hand", async () => {
-      atom.config.set("autocomplete.enableAutoConfirmSingleSuggestion", false);
+      lumine.config.set("autocomplete.enableAutoConfirmSingleSuggestion", false);
       registerProvider(new Set(["."]));
 
       editor.insertText(".");
       await waitForAutocomplete(editor);
       expect(provider.requests[0].triggerKind).toBe(2);
 
-      atom.commands.dispatch(editorView, "autocomplete:activate");
+      lumine.commands.dispatch(editorView, "autocomplete:activate");
       await conditionPromise(() => provider.requests.length > 1);
       const request = provider.requests[provider.requests.length - 1];
       expect(request.triggerKind).toBe(1);

@@ -17,12 +17,12 @@ To install `autocomplete` search for _autocomplete_ in the Install pane of the L
 
 ## Commands
 
-Commands available in `atom-text-editor`:
+Commands available in `lumine-text-editor`:
 
 - `autocomplete:activate`: manually show the suggestion list for the current word,
 - `autocomplete:navigate-to-description-more-link`: open the "more" link of the selected suggestion's description externally.
 
-Commands available in `atom-text-editor.autocomplete-active`:
+Commands available in `lumine-text-editor.autocomplete-active`:
 
 - `autocomplete:confirm`: insert the selected suggestion,
 - `autocomplete:confirmIfNonDefault`: insert the suggestion only if it is not the default selection,

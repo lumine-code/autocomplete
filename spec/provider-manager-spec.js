@@ -4,7 +4,7 @@ describe("Provider Manager", () => {
   let [providerManager, testProvider, registration] = [];
 
   beforeEach(() => {
-    atom.config.set("autocomplete.enableBuiltinProvider", true);
+    lumine.config.set("autocomplete.enableBuiltinProvider", true);
     providerManager = new ProviderManager();
     providerManager.initialize();
     testProvider = {
@@ -37,7 +37,7 @@ describe("Provider Manager", () => {
   });
 
   describe("when no providers have been registered, and enableBuiltinProvider is true", () => {
-    beforeEach(() => atom.config.set("autocomplete.enableBuiltinProvider", true));
+    beforeEach(() => lumine.config.set("autocomplete.enableBuiltinProvider", true));
 
     it("is constructed correctly", () => {
       expect(providerManager.providers).toBeDefined();
@@ -146,7 +146,7 @@ describe("Provider Manager", () => {
     });
 
     it("rejects an invalid provider with an error notification", () => {
-      atom.notifications.clear();
+      lumine.notifications.clear();
       const legacyProvider = {
         getSuggestions(_options) {},
         selector: ".source.python",
@@ -156,7 +156,7 @@ describe("Provider Manager", () => {
       expect(providerManager.metadataForProvider(legacyProvider)).toBeFalsy();
       expect(typeof disposable.dispose).toBe("function");
 
-      const notifications = atom.notifications.getNotifications();
+      const notifications = lumine.notifications.getNotifications();
       expect(notifications.length).toBe(1);
       expect(notifications[0].getType()).toBe("error");
       expect(notifications[0].getMessage()).toContain("Invalid autocomplete provider");
@@ -334,7 +334,7 @@ describe("Provider Manager", () => {
   });
 
   describe("when no providers have been registered, and enableBuiltinProvider is false", () => {
-    beforeEach(() => atom.config.set("autocomplete.enableBuiltinProvider", false));
+    beforeEach(() => lumine.config.set("autocomplete.enableBuiltinProvider", false));
 
     it("does not register the default provider for all scopes", () => {
       expect(providerManager.applicableProviders(["workspace-center"], "*").length).toBe(0);
@@ -347,7 +347,7 @@ describe("Provider Manager", () => {
     let [testProvider1, testProvider2, testProvider3, testProvider4, testProvider5] = [];
 
     beforeEach(() => {
-      atom.config.set("autocomplete.enableBuiltinProvider", true);
+      lumine.config.set("autocomplete.enableBuiltinProvider", true);
       providerManager = new ProviderManager();
       providerManager.initialize();
 
@@ -479,7 +479,7 @@ describe("Provider Manager", () => {
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment"),
       ).toHaveLength(4);
-      atom.config.set("autocomplete.scopeBlacklist", [".source.js .comment"]);
+      lumine.config.set("autocomplete.scopeBlacklist", [".source.js .comment"]);
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment"),
       ).toHaveLength(0);
@@ -489,7 +489,7 @@ describe("Provider Manager", () => {
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment"),
       ).toHaveLength(4);
-      atom.config.set("autocomplete.scopeBlacklist", [".source.js *"]);
+      lumine.config.set("autocomplete.scopeBlacklist", [".source.js *"]);
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment"),
       ).toHaveLength(0);
@@ -499,7 +499,7 @@ describe("Provider Manager", () => {
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment"),
       ).toHaveLength(4);
-      atom.config.set("autocomplete.scopeBlacklist", [".source.js *"]);
+      lumine.config.set("autocomplete.scopeBlacklist", [".source.js *"]);
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment .other"),
       ).toHaveLength(0);
@@ -509,7 +509,7 @@ describe("Provider Manager", () => {
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment"),
       ).toHaveLength(4);
-      atom.config.set("autocomplete.scopeBlacklist", [".source.coffee *"]);
+      lumine.config.set("autocomplete.scopeBlacklist", [".source.coffee *"]);
       expect(
         providerManager.applicableProviders(["workspace-center"], ".source.js .comment"),
       ).toHaveLength(4);
@@ -549,7 +549,7 @@ describe("Provider Manager", () => {
     ] = [];
 
     beforeEach(() => {
-      atom.config.set("autocomplete.enableBuiltinProvider", true);
+      lumine.config.set("autocomplete.enableBuiltinProvider", true);
       providerManager = new ProviderManager();
       providerManager.initialize();
       defaultProvider = providerManager.defaultProvider;
@@ -621,7 +621,7 @@ describe("Provider Manager", () => {
   describe("when suggestionPriorities are the same", () => {
     let [provider1, provider2, provider3] = [];
     beforeEach(() => {
-      atom.config.set("autocomplete.enableBuiltinProvider", true);
+      lumine.config.set("autocomplete.enableBuiltinProvider", true);
       providerManager = new ProviderManager();
       providerManager.initialize();
 

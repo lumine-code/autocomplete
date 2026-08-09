@@ -1,4 +1,4 @@
-const { TextEditor } = require("atom");
+const { TextEditor } = require("lumine");
 const {
   conditionPromise,
   timeoutPromise,
@@ -34,30 +34,30 @@ describe("Autocomplete Manager", () => {
   };
 
   beforeEach(() => {
-    atom.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
+    lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
     gutterWidth = null;
     // Set to live completion
-    atom.config.set("autocomplete.enableAutoActivation", true);
-    atom.config.set("editor.fontSize", "16");
+    lumine.config.set("autocomplete.enableAutoActivation", true);
+    lumine.config.set("editor.fontSize", "16");
 
     // Set the completion delay
-    atom.config.set("autocomplete.autoActivationDelay", 100);
+    lumine.config.set("autocomplete.autoActivationDelay", 100);
 
-    workspaceElement = atom.views.getView(atom.workspace);
+    workspaceElement = lumine.views.getView(lumine.workspace);
     jasmine.attachToDOM(workspaceElement);
 
-    atom.config.set("autocomplete.maxVisibleSuggestions", 10);
-    atom.config.set("autocomplete.consumeSuffix", true);
+    lumine.config.set("autocomplete.maxVisibleSuggestions", 10);
+    lumine.config.set("autocomplete.consumeSuffix", true);
   });
 
   describe("when an external provider is registered", () => {
     let provider;
 
     beforeEach(async () => {
-      editor = await atom.workspace.open("");
-      editorView = atom.views.getView(editor);
-      mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+      editor = await lumine.workspace.open("");
+      editorView = lumine.views.getView(editor);
+      mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
       await conditionPromise(() => mainModule.autocompleteManager);
 
       provider = {
@@ -82,7 +82,7 @@ describe("Autocomplete Manager", () => {
       let suggestionListView = editorView.querySelector(
         ".autocomplete autocomplete-suggestion-list",
       );
-      atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+      lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
       expect(provider.onDidInsertSuggestion).toHaveBeenCalled();
 
@@ -120,13 +120,13 @@ describe("Autocomplete Manager", () => {
       await waitForAutocomplete(editor);
 
       expect(editorView.querySelector(".autocomplete")).toExist();
-      atom.commands.dispatch(editorView, "autocomplete:confirm");
+      lumine.commands.dispatch(editorView, "autocomplete:confirm");
       expect(editorView.querySelector(".autocomplete")).not.toExist();
     });
 
     it("works after closing one of the copied tabs", async () => {
-      atom.workspace.paneForItem(editor).splitRight({ copyActiveItem: true });
-      atom.workspace.getActivePane().destroy();
+      lumine.workspace.paneForItem(editor).splitRight({ copyActiveItem: true });
+      lumine.workspace.getActivePane().destroy();
 
       editor.insertNewline();
       editor.insertText("f");
@@ -182,11 +182,11 @@ describe("Autocomplete Manager", () => {
     });
 
     it("only shows for the editor that currently has focus", async () => {
-      let editor2 = atom.workspace
+      let editor2 = lumine.workspace
         .paneForItem(editor)
         .splitRight({ copyActiveItem: true })
         .getActiveItem();
-      let editorView2 = atom.views.getView(editor2);
+      let editorView2 = lumine.views.getView(editor2);
       editorView.focus();
 
       expect(editorView).toHaveFocus();
@@ -208,7 +208,7 @@ describe("Autocomplete Manager", () => {
       expect(editorView.querySelector(".autocomplete")).toExist();
       expect(editorView2.querySelector(".autocomplete")).not.toExist();
 
-      atom.commands.dispatch(editorView, "autocomplete:confirm");
+      lumine.commands.dispatch(editorView, "autocomplete:confirm");
 
       expect(editorView).toHaveFocus();
       expect(editorView2).not.toHaveFocus();
@@ -233,7 +233,7 @@ describe("Autocomplete Manager", () => {
 
     describe("when the fileBlacklist option is set", () => {
       beforeEach(() => {
-        atom.config.set("autocomplete.fileBlacklist", [".*", "*.md"]);
+        lumine.config.set("autocomplete.fileBlacklist", [".*", "*.md"]);
         editor.getBuffer().setPath("blacklisted.md");
       });
 
@@ -257,14 +257,14 @@ describe("Autocomplete Manager", () => {
         editor.insertText("a");
 
         await waitForAutocompleteToDisappear(editor);
-        atom.commands.dispatch(editorView, "autocomplete:cancel");
+        lumine.commands.dispatch(editorView, "autocomplete:cancel");
 
         editor.getBuffer().setPath("not-blackslisted.txt");
         editor.insertText("a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
-        atom.commands.dispatch(editorView, "autocomplete:cancel");
+        lumine.commands.dispatch(editorView, "autocomplete:cancel");
 
         editor.getBuffer().setPath("blackslisted.md");
         editor.insertText("a");
@@ -361,7 +361,7 @@ describe("Autocomplete Manager", () => {
         ({ autocompleteManager } = mainModule);
         expect(editorView.querySelector(".autocomplete")).toExist();
 
-        atom.commands.dispatch(editorView, "autocomplete:confirm");
+        lumine.commands.dispatch(editorView, "autocomplete:confirm");
 
         expect(editor.lineTextForBufferRow(0)).toBe("shift:extra:shift");
         expect(editor.getCursorBufferPosition()).toEqual([0, 17]);
@@ -388,8 +388,8 @@ describe("Autocomplete Manager", () => {
         triggerAutocompletion(editor, false, "h");
 
         ({ autocompleteManager } = mainModule);
-        editorView = atom.views.getView(editor);
-        atom.commands.dispatch(editorView, "autocomplete:confirm");
+        editorView = lumine.views.getView(editor);
+        lumine.commands.dispatch(editorView, "autocomplete:confirm");
 
         expect(editor.lineTextForBufferRow(0)).toBe("sh:extra:ah");
         expect(editor.getSelections().length).toEqual(2);
@@ -408,7 +408,7 @@ describe("Autocomplete Manager", () => {
 
     describe("suppression for editorView classes", () => {
       beforeEach(() => {
-        atom.config.set("autocomplete.suppressActivationForEditorClasses", [
+        lumine.config.set("autocomplete.suppressActivationForEditorClasses", [
           "vim-mode.command-mode",
           "vim-mode . visual-mode",
           " vim-mode.operator-pending-mode ",
@@ -585,7 +585,7 @@ describe("Autocomplete Manager", () => {
 
           mainModule.consumeAutocomplete(provider, 4);
 
-          atom.config.set("language.nonWordCharacters", "-");
+          lumine.config.set("language.nonWordCharacters", "-");
           editor.insertText(" $foo-$ba");
           editor.insertText("r");
           await suggestionsPromise;
@@ -658,7 +658,7 @@ describe("Autocomplete Manager", () => {
 
     describe("when number of suggestions > maxVisibleSuggestions", () => {
       beforeEach(() => {
-        atom.config.set("autocomplete.maxVisibleSuggestions", 2);
+        lumine.config.set("autocomplete.maxVisibleSuggestions", 2);
       });
 
       describe("when a suggestion description is not specified", () => {
@@ -680,35 +680,35 @@ describe("Autocomplete Manager", () => {
           let scroller = suggestionList.querySelector(".suggestion-list-scroller");
 
           expect(scroller.scrollTop).toBe(0);
-          atom.commands.dispatch(suggestionList, "core:move-down");
+          lumine.commands.dispatch(suggestionList, "core:move-down");
           expect(editorView.querySelectorAll(".autocomplete li")[1]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(0);
 
-          atom.commands.dispatch(suggestionList, "core:move-down");
+          lumine.commands.dispatch(suggestionList, "core:move-down");
           expect(editorView.querySelectorAll(".autocomplete li")[2]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight);
 
-          atom.commands.dispatch(suggestionList, "core:move-down");
+          lumine.commands.dispatch(suggestionList, "core:move-down");
           expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight * 2);
 
-          atom.commands.dispatch(suggestionList, "core:move-down");
+          lumine.commands.dispatch(suggestionList, "core:move-down");
           expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(0);
 
-          atom.commands.dispatch(suggestionList, "core:move-up");
+          lumine.commands.dispatch(suggestionList, "core:move-up");
           expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight * 2);
 
-          atom.commands.dispatch(suggestionList, "core:move-up");
+          lumine.commands.dispatch(suggestionList, "core:move-up");
           expect(editorView.querySelectorAll(".autocomplete li")[2]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight * 2);
 
-          atom.commands.dispatch(suggestionList, "core:move-up");
+          lumine.commands.dispatch(suggestionList, "core:move-up");
           expect(editorView.querySelectorAll(".autocomplete li")[1]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight);
 
-          atom.commands.dispatch(suggestionList, "core:move-up");
+          lumine.commands.dispatch(suggestionList, "core:move-up");
           expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(0);
         });
@@ -723,23 +723,23 @@ describe("Autocomplete Manager", () => {
           let scroller = suggestionList.querySelector(".suggestion-list-scroller");
           expect(scroller.scrollTop).toBe(0);
 
-          atom.commands.dispatch(suggestionList, "core:page-down");
+          lumine.commands.dispatch(suggestionList, "core:page-down");
           expect(editorView.querySelectorAll(".autocomplete li")[2]).toHaveClass("selected");
 
-          atom.commands.dispatch(suggestionList, "core:page-down");
+          lumine.commands.dispatch(suggestionList, "core:page-down");
           expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
 
-          atom.commands.dispatch(suggestionList, "core:page-down");
+          lumine.commands.dispatch(suggestionList, "core:page-down");
           expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight * 2);
 
-          atom.commands.dispatch(suggestionList, "core:page-up");
+          lumine.commands.dispatch(suggestionList, "core:page-up");
           expect(editorView.querySelectorAll(".autocomplete li")[1]).toHaveClass("selected");
 
-          atom.commands.dispatch(suggestionList, "core:page-up");
+          lumine.commands.dispatch(suggestionList, "core:page-up");
           expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
 
-          atom.commands.dispatch(suggestionList, "core:page-up");
+          lumine.commands.dispatch(suggestionList, "core:page-up");
           expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(0);
         });
@@ -754,19 +754,19 @@ describe("Autocomplete Manager", () => {
           let scroller = suggestionList.querySelector(".suggestion-list-scroller");
           expect(scroller.scrollTop).toBe(0);
 
-          atom.commands.dispatch(suggestionList, "core:move-to-bottom");
+          lumine.commands.dispatch(suggestionList, "core:move-to-bottom");
           expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight * 2);
 
-          atom.commands.dispatch(suggestionList, "core:move-to-bottom");
+          lumine.commands.dispatch(suggestionList, "core:move-to-bottom");
           expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(itemHeight * 2);
 
-          atom.commands.dispatch(suggestionList, "core:move-to-top");
+          lumine.commands.dispatch(suggestionList, "core:move-to-top");
           expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(0);
 
-          atom.commands.dispatch(suggestionList, "core:move-to-top");
+          lumine.commands.dispatch(suggestionList, "core:move-to-top");
           expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
           expect(scroller.scrollTop).toBe(0);
         });
@@ -904,21 +904,21 @@ describe("Autocomplete Manager", () => {
       });
 
       it("binds to custom commands when unset, and binds back to core commands when set", () => {
-        atom.commands.dispatch(suggestionList, "core:move-down");
+        lumine.commands.dispatch(suggestionList, "core:move-down");
         expect(editorView.querySelectorAll(".autocomplete li")[1]).toHaveClass("selected");
 
-        atom.config.set("autocomplete.useCoreMovementCommands", false);
+        lumine.config.set("autocomplete.useCoreMovementCommands", false);
 
-        atom.commands.dispatch(suggestionList, "core:move-down");
+        lumine.commands.dispatch(suggestionList, "core:move-down");
         expect(editorView.querySelectorAll(".autocomplete li")[1]).toHaveClass("selected");
-        atom.commands.dispatch(suggestionList, "autocomplete:move-down");
+        lumine.commands.dispatch(suggestionList, "autocomplete:move-down");
         expect(editorView.querySelectorAll(".autocomplete li")[2]).toHaveClass("selected");
 
-        atom.config.set("autocomplete.useCoreMovementCommands", true);
+        lumine.config.set("autocomplete.useCoreMovementCommands", true);
 
-        atom.commands.dispatch(suggestionList, "autocomplete:move-down");
+        lumine.commands.dispatch(suggestionList, "autocomplete:move-down");
         expect(editorView.querySelectorAll(".autocomplete li")[2]).toHaveClass("selected");
-        atom.commands.dispatch(suggestionList, "core:move-down");
+        lumine.commands.dispatch(suggestionList, "core:move-down");
         expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
       });
     });
@@ -927,7 +927,7 @@ describe("Autocomplete Manager", () => {
       let [suggestionList] = [];
 
       beforeEach(async () => {
-        atom.config.set("autocomplete.useCoreMovementCommands", false);
+        lumine.config.set("autocomplete.useCoreMovementCommands", false);
         triggerAutocompletion(editor, true, "a");
         await waitForAutocomplete(editor);
 
@@ -936,25 +936,25 @@ describe("Autocomplete Manager", () => {
       });
 
       it("responds to all the custom movement commands and to no core commands", () => {
-        atom.commands.dispatch(suggestionList, "core:move-down");
+        lumine.commands.dispatch(suggestionList, "core:move-down");
         expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionList, "autocomplete:move-down");
+        lumine.commands.dispatch(suggestionList, "autocomplete:move-down");
         expect(editorView.querySelectorAll(".autocomplete li")[1]).toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionList, "autocomplete:move-up");
+        lumine.commands.dispatch(suggestionList, "autocomplete:move-up");
         expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionList, "autocomplete:page-down");
+        lumine.commands.dispatch(suggestionList, "autocomplete:page-down");
         expect(editorView.querySelectorAll(".autocomplete li")[0]).not.toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionList, "autocomplete:page-up");
+        lumine.commands.dispatch(suggestionList, "autocomplete:page-up");
         expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionList, "autocomplete:move-to-bottom");
+        lumine.commands.dispatch(suggestionList, "autocomplete:move-to-bottom");
         expect(editorView.querySelectorAll(".autocomplete li")[3]).toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionList, "autocomplete:move-to-top");
+        lumine.commands.dispatch(suggestionList, "autocomplete:move-to-top");
         expect(editorView.querySelectorAll(".autocomplete li")[0]).toHaveClass("selected");
       });
     });
@@ -973,7 +973,7 @@ describe("Autocomplete Manager", () => {
       });
 
       describe("when the snippets package is enabled", () => {
-        beforeEach(() => atom.packages.activatePackage("snippets"));
+        beforeEach(() => lumine.packages.activatePackage("snippets"));
 
         it("displays the snippet without the `${1:}` in its own class", async () => {
           triggerAutocompletion(editor, true, "m");
@@ -994,7 +994,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
           expect(editorView.querySelector(".autocomplete")).not.toExist();
           expect(editor.getSelectedText()).toBe("something");
         });
@@ -1009,13 +1009,13 @@ describe("Autocomplete Manager", () => {
           expect(wordElements[3].textContent).toBe("namespace\\method4(something)");
 
           // Select last item
-          atom.commands.dispatch(editorView, "core:move-up");
+          lumine.commands.dispatch(editorView, "core:move-up");
 
           // Value in editor
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
           expect(editorView.querySelector(".autocomplete")).not.toExist();
           expect(editor.getText()).toBe("namespace\\method4(something)");
         });
@@ -1097,7 +1097,7 @@ describe("Autocomplete Manager", () => {
         });
 
         describe("when the snippets package is enabled", () => {
-          beforeEach(() => atom.packages.activatePackage("snippets"));
+          beforeEach(() => lumine.packages.activatePackage("snippets"));
 
           it("does not highlight the snippet html; ref issue 301", async () => {
             spyOn(provider, "getSuggestions").andCallFake(() => [{ snippet: "ab(${1:c})c" }]);
@@ -1157,7 +1157,7 @@ describe("Autocomplete Manager", () => {
         let suggestionListView = editorView.querySelector(
           ".autocomplete autocomplete-suggestion-list",
         );
-        atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+        lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
         expect(editor.getText()).toBe("something");
       });
 
@@ -1172,13 +1172,13 @@ describe("Autocomplete Manager", () => {
         let suggestionListView = editorView.querySelector(
           ".autocomplete autocomplete-suggestion-list",
         );
-        atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+        lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
         expect(editor.getText()).toBe("abc.something");
       });
 
       describe("providers using the 4.0 API", () => {
         it("replaces the entire prefix by default, regardless of the characters it contains", async () => {
-          atom.config.set("language.nonWordCharacters", "-");
+          lumine.config.set("language.nonWordCharacters", "-");
           provider = {
             scopeSelector: "*",
             inclusionPriority: 100,
@@ -1202,7 +1202,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
           expect(editor.getText()).toBe("$food $food");
         });
       });
@@ -1227,7 +1227,7 @@ describe("Autocomplete Manager", () => {
         let suggestionListView = editorView.querySelector(
           ".autocomplete autocomplete-suggestion-list",
         );
-        atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+        lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
         expect(editor.getText()).toBe("something");
         expect(suggestion.replacementPrefix).toBe("som");
         expect(suggestion.isPrefixModified).toBe(true);
@@ -1241,7 +1241,7 @@ describe("Autocomplete Manager", () => {
         let suggestionListView = editorView.querySelector(
           ".autocomplete autocomplete-suggestion-list",
         );
-        atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+        lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
         expect(editor.getText()).toBe("something");
         expect(suggestion.replacementPrefix).toBe("somet");
         expect(suggestion.isPrefixModified).toBe(true);
@@ -1250,7 +1250,7 @@ describe("Autocomplete Manager", () => {
 
     describe("when autocomplete.suggestionListFollows is 'Cursor'", () => {
       beforeEach(() => {
-        atom.config.set("autocomplete.suggestionListFollows", "Cursor");
+        lumine.config.set("autocomplete.suggestionListFollows", "Cursor");
       });
 
       it("places the suggestion list at the cursor", async () => {
@@ -1308,7 +1308,7 @@ describe("Autocomplete Manager", () => {
 
     describe("when autocomplete.suggestionListFollows is 'Word'", () => {
       beforeEach(() => {
-        atom.config.set("autocomplete.suggestionListFollows", "Word");
+        lumine.config.set("autocomplete.suggestionListFollows", "Word");
       });
 
       it("opens to the correct position, and correctly closes on cancel", async () => {
@@ -1440,7 +1440,7 @@ describe("Autocomplete Manager", () => {
         let suggestionListView = editorView.querySelector(
           ".autocomplete autocomplete-suggestion-list",
         );
-        atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+        lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
       });
@@ -1467,7 +1467,7 @@ describe("Autocomplete Manager", () => {
         expect(editorView.querySelector(".autocomplete")).not.toExist();
         // …and our editor still has focus.
         await conditionPromise(() => {
-          return document.activeElement.closest("atom-text-editor") === editorView;
+          return document.activeElement.closest("lumine-text-editor") === editorView;
         });
       });
 
@@ -1486,7 +1486,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
           expect(editor.getText()).toBe("ok then a.someMethod()");
         });
@@ -1494,7 +1494,7 @@ describe("Autocomplete Manager", () => {
 
       describe("when the alternate keyboard integration is used", () => {
         beforeEach(() =>
-          atom.config.set(
+          lumine.config.set(
             "autocomplete.confirmCompletion",
             "tab always, enter when suggestion explicitly selected",
           ),
@@ -1504,10 +1504,10 @@ describe("Autocomplete Manager", () => {
           triggerAutocompletion(editor, false, "a");
           await waitForAutocomplete(editor);
 
-          let key = atom.keymaps.constructor.buildKeydownEvent("tab", {
+          let key = lumine.keymaps.constructor.buildKeydownEvent("tab", {
             target: document.activeElement,
           });
-          atom.keymaps.handleKeyboardEvent(key);
+          lumine.keymaps.handleKeyboardEvent(key);
 
           expect(editor.getText()).toBe("ok then ab");
 
@@ -1520,11 +1520,11 @@ describe("Autocomplete Manager", () => {
           triggerAutocompletion(editor, false, "a");
           await waitForAutocomplete(editor);
 
-          let key = atom.keymaps.constructor.buildKeydownEvent("enter", {
+          let key = lumine.keymaps.constructor.buildKeydownEvent("enter", {
             keyCode: 13,
             target: document.activeElement,
           });
-          atom.keymaps.handleKeyboardEvent(key);
+          lumine.keymaps.handleKeyboardEvent(key);
           expect(editor.getText()).toBe("ok then a\n");
         });
 
@@ -1532,13 +1532,13 @@ describe("Autocomplete Manager", () => {
           triggerAutocompletion(editor, false, "a");
           await waitForAutocomplete(editor);
 
-          editorView = atom.views.getView(editor);
-          atom.commands.dispatch(editorView, "core:move-down");
-          let key = atom.keymaps.constructor.buildKeydownEvent("enter", {
+          editorView = lumine.views.getView(editor);
+          lumine.commands.dispatch(editorView, "core:move-down");
+          let key = lumine.keymaps.constructor.buildKeydownEvent("enter", {
             keyCode: 13,
             target: document.activeElement,
           });
-          atom.keymaps.handleKeyboardEvent(key);
+          lumine.keymaps.handleKeyboardEvent(key);
 
           expect(editor.getText()).toBe("ok then abc");
 
@@ -1549,16 +1549,16 @@ describe("Autocomplete Manager", () => {
       });
 
       describe("when tab is used to accept suggestions", () => {
-        beforeEach(() => atom.config.set("autocomplete.confirmCompletion", "tab"));
+        beforeEach(() => lumine.config.set("autocomplete.confirmCompletion", "tab"));
 
         it("inserts the word and moves the cursor to the end of the word", async () => {
           triggerAutocompletion(editor, false, "a");
           await waitForAutocomplete(editor);
 
-          let key = atom.keymaps.constructor.buildKeydownEvent("tab", {
+          let key = lumine.keymaps.constructor.buildKeydownEvent("tab", {
             target: document.activeElement,
           });
-          atom.keymaps.handleKeyboardEvent(key);
+          lumine.keymaps.handleKeyboardEvent(key);
 
           expect(editor.getText()).toBe("ok then ab");
 
@@ -1571,26 +1571,26 @@ describe("Autocomplete Manager", () => {
           triggerAutocompletion(editor, false, "a");
           await waitForAutocomplete(editor);
 
-          let key = atom.keymaps.constructor.buildKeydownEvent("enter", {
+          let key = lumine.keymaps.constructor.buildKeydownEvent("enter", {
             keyCode: 13,
             target: document.activeElement,
           });
-          atom.keymaps.handleKeyboardEvent(key);
+          lumine.keymaps.handleKeyboardEvent(key);
           expect(editor.getText()).toBe("ok then a\n");
         });
       });
 
       describe("when enter is used to accept suggestions", () => {
-        beforeEach(() => atom.config.set("autocomplete.confirmCompletion", "enter"));
+        beforeEach(() => lumine.config.set("autocomplete.confirmCompletion", "enter"));
 
         it("inserts the word and moves the cursor to the end of the word", async () => {
           triggerAutocompletion(editor, false, "a");
           await waitForAutocomplete(editor);
 
-          let key = atom.keymaps.constructor.buildKeydownEvent("enter", {
+          let key = lumine.keymaps.constructor.buildKeydownEvent("enter", {
             target: document.activeElement,
           });
-          atom.keymaps.handleKeyboardEvent(key);
+          lumine.keymaps.handleKeyboardEvent(key);
 
           expect(editor.getText()).toBe("ok then ab");
 
@@ -1603,11 +1603,11 @@ describe("Autocomplete Manager", () => {
           triggerAutocompletion(editor, false, "a");
           await waitForAutocomplete(editor);
 
-          let key = atom.keymaps.constructor.buildKeydownEvent("tab", {
+          let key = lumine.keymaps.constructor.buildKeydownEvent("tab", {
             keyCode: 13,
             target: document.activeElement,
           });
-          atom.keymaps.handleKeyboardEvent(key);
+          lumine.keymaps.handleKeyboardEvent(key);
           expect(editor.getText()).toBe("ok then a ");
         });
       });
@@ -1626,7 +1626,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
           expect(editor.getText()).toBe("oneomgtwothree");
         });
@@ -1636,7 +1636,7 @@ describe("Autocomplete Manager", () => {
             { text: "oneomgtwo", replacementPrefix: "one" },
           ]);
 
-          atom.config.set("autocomplete.consumeSuffix", false);
+          lumine.config.set("autocomplete.consumeSuffix", false);
 
           editor.setText("ontwothree");
           editor.setCursorBufferPosition([0, 2]);
@@ -1646,7 +1646,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
           expect(editor.getText()).toBe("oneomgtwotwothree");
         });
@@ -1664,7 +1664,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
           expect(editor.getText()).toBe("(oneomgtwo())three");
         });
@@ -1674,7 +1674,7 @@ describe("Autocomplete Manager", () => {
           // set. Reading the setting unscoped ignored the override and left
           // the suffix untouched.
           const scopeSelector = `.${editor.getRootScopeDescriptor().getScopesArray()[0]}`;
-          atom.config.set("language.nonWordCharacters", "(", { scopeSelector });
+          lumine.config.set("language.nonWordCharacters", "(", { scopeSelector });
 
           spyOn(provider, "getSuggestions").andCallFake(() => [
             { text: "oneomgtwo()", replacementPrefix: "one" },
@@ -1688,7 +1688,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
           expect(editor.getText()).toBe("(oneomgtwo()three");
         });
@@ -1710,7 +1710,7 @@ describe("Autocomplete Manager", () => {
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
 
           expect(editor.getText()).toBe("oneomgTwotwothree");
         });
@@ -1719,7 +1719,7 @@ describe("Autocomplete Manager", () => {
 
     describe("when auto-activation is disabled", () => {
       beforeEach(() => {
-        atom.config.set("autocomplete.enableAutoActivation", false);
+        lumine.config.set("autocomplete.enableAutoActivation", false);
       });
 
       it("does not show suggestions after a delay", async () => {
@@ -1733,7 +1733,7 @@ describe("Autocomplete Manager", () => {
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        atom.commands.dispatch(editorView, "autocomplete:activate");
+        lumine.commands.dispatch(editorView, "autocomplete:activate");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
@@ -1744,7 +1744,7 @@ describe("Autocomplete Manager", () => {
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        atom.commands.dispatch(editorView, "autocomplete:activate");
+        lumine.commands.dispatch(editorView, "autocomplete:activate");
         await waitForAutocomplete(editor);
 
         editor.insertText("b");
@@ -1752,14 +1752,14 @@ describe("Autocomplete Manager", () => {
       });
 
       it("accepts the suggestion if there is one and auto-confirm single suggestion is enabled", async () => {
-        atom.config.set("autocomplete.enableAutoConfirmSingleSuggestion", true);
+        lumine.config.set("autocomplete.enableAutoConfirmSingleSuggestion", true);
         spyOn(provider, "getSuggestions").andCallFake((_) => [{ text: "omgok" }]);
 
         triggerAutocompletion(editor);
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        atom.commands.dispatch(editorView, "autocomplete:activate");
+        lumine.commands.dispatch(editorView, "autocomplete:activate");
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
@@ -1767,14 +1767,14 @@ describe("Autocomplete Manager", () => {
       });
 
       it("does not accept the suggestion if the event detail is activatedManually: false", async () => {
-        atom.config.set("autocomplete.enableAutoConfirmSingleSuggestion", true);
+        lumine.config.set("autocomplete.enableAutoConfirmSingleSuggestion", true);
         spyOn(provider, "getSuggestions").andCallFake((_) => [{ text: "omgok" }]);
 
         triggerAutocompletion(editor);
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        atom.commands.dispatch(editorView, "autocomplete:activate", {
+        lumine.commands.dispatch(editorView, "autocomplete:activate", {
           activatedManually: false,
         });
         await waitForAutocomplete(editor);
@@ -1786,9 +1786,9 @@ describe("Autocomplete Manager", () => {
         triggerAutocompletion(editor);
         await timeoutPromise(100);
 
-        atom.config.set("autocomplete.enableAutoConfirmSingleSuggestion", false);
+        lumine.config.set("autocomplete.enableAutoConfirmSingleSuggestion", false);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        atom.commands.dispatch(editorView, "autocomplete:activate");
+        lumine.commands.dispatch(editorView, "autocomplete:activate");
         await waitForAutocomplete(editor);
       });
 
@@ -1803,7 +1803,7 @@ describe("Autocomplete Manager", () => {
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        atom.commands.dispatch(editorView, "autocomplete:activate");
+        lumine.commands.dispatch(editorView, "autocomplete:activate");
         await waitForAutocomplete(editor);
 
         expect(receivedOptions).toBeDefined();
@@ -1823,7 +1823,7 @@ describe("Autocomplete Manager", () => {
         });
 
         editor.insertText("a");
-        atom.commands.dispatch(editorView, "autocomplete:activate");
+        lumine.commands.dispatch(editorView, "autocomplete:activate");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelectorAll(".autocomplete li")).toHaveLength(2);
@@ -1854,7 +1854,7 @@ def`);
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
           expect(editor.getText()).toBe(`asomething asomething
 defm`);
         });
@@ -1865,7 +1865,7 @@ defm`);
           spyOn(provider, "getSuggestions").andCallFake(() => [
             { snippet: "ok(${1:omg})", replacementPrefix: "bcm" },
           ]);
-          await atom.packages.activatePackage("snippets");
+          await lumine.packages.activatePackage("snippets");
         });
 
         it("only replaces the suggestion at cursors whos prefix matches the replacementPrefix", async () => {
@@ -1881,7 +1881,7 @@ def`);
           let suggestionListView = editorView.querySelector(
             ".autocomplete autocomplete-suggestion-list",
           );
-          atom.commands.dispatch(suggestionListView, "autocomplete:confirm");
+          lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
           expect(editor.getText()).toBe(`aok(omg) aok(omg)
 defm`);
         });
@@ -1904,7 +1904,7 @@ defm`);
         expect(items[2]).not.toHaveClass("selected");
 
         // Select previous item
-        atom.commands.dispatch(editorView, "core:move-up");
+        lumine.commands.dispatch(editorView, "core:move-up");
 
         items = editorView.querySelectorAll(".autocomplete li");
         expect(items[0]).not.toHaveClass("selected");
@@ -1922,7 +1922,7 @@ defm`);
         await waitForAutocomplete(editor);
 
         // two items displayed, should not close
-        atom.commands.dispatch(editorView, "core:move-up");
+        lumine.commands.dispatch(editorView, "core:move-up");
         await timeoutPromise(1);
 
         let autocomplete = editorView.querySelector(".autocomplete");
@@ -1935,7 +1935,7 @@ defm`);
         expect(autocomplete).toExist();
 
         // one item displayed, should close
-        atom.commands.dispatch(editorView, "core:move-up");
+        lumine.commands.dispatch(editorView, "core:move-up");
         await timeoutPromise(1);
 
         autocomplete = editorView.querySelector(".autocomplete");
@@ -1958,7 +1958,7 @@ defm`);
         let autocomplete = editorView.querySelector(".autocomplete");
         expect(autocomplete).toExist();
 
-        atom.commands.dispatch(editorView, "core:move-up");
+        lumine.commands.dispatch(editorView, "core:move-up");
 
         autocomplete = editorView.querySelector(".autocomplete");
         expect(autocomplete).toExist();
@@ -1978,7 +1978,7 @@ defm`);
         expect(items[2]).not.toHaveClass("selected");
 
         // Select next item
-        atom.commands.dispatch(editorView, "core:move-down");
+        lumine.commands.dispatch(editorView, "core:move-down");
 
         items = editorView.querySelectorAll(".autocomplete li");
         expect(items[0]).not.toHaveClass("selected");
@@ -2006,13 +2006,13 @@ defm`);
         );
         items = editorView.querySelectorAll(".autocomplete li");
 
-        atom.commands.dispatch(suggestionListView, "core:move-down");
+        lumine.commands.dispatch(suggestionListView, "core:move-down");
         expect(items[1]).toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionListView, "core:move-down");
+        lumine.commands.dispatch(suggestionListView, "core:move-down");
         expect(items[2]).toHaveClass("selected");
 
-        atom.commands.dispatch(suggestionListView, "core:move-down");
+        lumine.commands.dispatch(suggestionListView, "core:move-down");
         expect(items[0]).toHaveClass("selected");
       });
     });
@@ -2255,39 +2255,39 @@ defm`);
         spyOn(provider, "getSuggestions").andCallFake(() => [
           { text: "ab", description: "it is ab" },
         ]);
-        spyOn(atom.shell, "openExternal");
+        spyOn(lumine.shell, "openExternal");
 
         triggerAutocompletion(editor, true, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
-        atom.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
-        expect(atom.shell.openExternal).toHaveBeenCalled();
+        lumine.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
+        expect(lumine.shell.openExternal).toHaveBeenCalled();
       });
 
       it("does not trigger openExternal on keybind if there is not a description", async () => {
         spyOn(provider, "getSuggestions").andCallFake(() => [{ text: "ab" }]);
-        spyOn(atom.shell, "openExternal");
+        spyOn(lumine.shell, "openExternal");
 
         triggerAutocompletion(editor, true, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
-        atom.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
-        expect(atom.shell.openExternal).not.toHaveBeenCalled();
+        lumine.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
+        expect(lumine.shell.openExternal).not.toHaveBeenCalled();
       });
     });
   });
 
   describe("when opening a file without a path", () => {
     beforeEach(async () => {
-      editor = await atom.workspace.open("");
-      editorView = atom.views.getView(editor);
+      editor = await lumine.workspace.open("");
+      editorView = lumine.views.getView(editor);
 
-      await atom.packages.activatePackage("language-text");
+      await lumine.packages.activatePackage("language-text");
 
       // Activate the package
-      mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+      mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
 
       await conditionPromise(() => {
         return mainModule && mainModule.autocompleteManager && mainModule.autocompleteManager.ready;
@@ -2299,7 +2299,7 @@ defm`);
     });
 
     describe("when strict matching is used", () => {
-      beforeEach(() => atom.config.set("autocomplete.strictMatching", true));
+      beforeEach(() => lumine.config.set("autocomplete.strictMatching", true));
 
       it("using strict matching does not cause issues when typing", async () => {
         editor.moveToBottom();
@@ -2316,14 +2316,14 @@ defm`);
 
   describe("when opening a javascript file", () => {
     beforeEach(async () => {
-      atom.config.set("autocomplete.enableAutoActivation", true);
+      lumine.config.set("autocomplete.enableAutoActivation", true);
 
-      editor = await atom.workspace.open("sample.js");
-      editorView = atom.views.getView(editor);
+      editor = await lumine.workspace.open("sample.js");
+      editorView = lumine.views.getView(editor);
 
-      await atom.packages.activatePackage("language-javascript");
+      await lumine.packages.activatePackage("language-javascript");
 
-      mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+      mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
 
       await conditionPromise(() => {
         autocompleteManager = mainModule.autocompleteManager;
@@ -2337,7 +2337,7 @@ defm`);
 
     describe("when the built-in provider is disabled", () =>
       it("should not show the suggestion list", async () => {
-        atom.config.set("autocomplete.enableBuiltinProvider", false);
+        lumine.config.set("autocomplete.enableBuiltinProvider", false);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
         triggerAutocompletion(editor);
         await timeoutPromise(100);
@@ -2372,7 +2372,7 @@ defm`);
       });
 
       it("shows the suggestion list on backspace if allowed", async () => {
-        atom.config.set("autocomplete.backspaceTriggersAutocomplete", true);
+        lumine.config.set("autocomplete.backspaceTriggersAutocomplete", true);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
@@ -2385,17 +2385,17 @@ defm`);
         await waitForAutocompleteToDisappear(editor);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        let key = atom.keymaps.constructor.buildKeydownEvent("backspace", {
+        let key = lumine.keymaps.constructor.buildKeydownEvent("backspace", {
           target: document.activeElement,
         });
-        atom.keymaps.handleKeyboardEvent(key);
+        lumine.keymaps.handleKeyboardEvent(key);
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        key = atom.keymaps.constructor.buildKeydownEvent("backspace", {
+        key = lumine.keymaps.constructor.buildKeydownEvent("backspace", {
           target: document.activeElement,
         });
-        atom.keymaps.handleKeyboardEvent(key);
+        lumine.keymaps.handleKeyboardEvent(key);
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
@@ -2403,7 +2403,7 @@ defm`);
       });
 
       it("does not shows the suggestion list on backspace if disallowed", async () => {
-        atom.config.set("autocomplete.backspaceTriggersAutocomplete", false);
+        lumine.config.set("autocomplete.backspaceTriggersAutocomplete", false);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
@@ -2415,16 +2415,16 @@ defm`);
         editor.insertText("\r");
 
         await waitForAutocompleteToDisappear(editor);
-        let key = atom.keymaps.constructor.buildKeydownEvent("backspace", {
+        let key = lumine.keymaps.constructor.buildKeydownEvent("backspace", {
           target: document.activeElement,
         });
-        atom.keymaps.handleKeyboardEvent(key);
+        lumine.keymaps.handleKeyboardEvent(key);
 
         await waitForAutocompleteToDisappear(editor);
-        key = atom.keymaps.constructor.buildKeydownEvent("backspace", {
+        key = lumine.keymaps.constructor.buildKeydownEvent("backspace", {
           target: document.activeElement,
         });
-        atom.keymaps.handleKeyboardEvent(key);
+        lumine.keymaps.handleKeyboardEvent(key);
         await timeoutPromise(100);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
@@ -2440,10 +2440,10 @@ defm`);
         await waitForAutocomplete(editor);
         expect(editorView.querySelector(".autocomplete")).toExist();
 
-        let key = atom.keymaps.constructor.buildKeydownEvent("backspace", {
+        let key = lumine.keymaps.constructor.buildKeydownEvent("backspace", {
           target: document.activeElement,
         });
-        atom.keymaps.handleKeyboardEvent(key);
+        lumine.keymaps.handleKeyboardEvent(key);
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
@@ -2451,15 +2451,15 @@ defm`);
       });
 
       it("does not open the suggestion on backspace when it's closed", async () => {
-        atom.config.set("autocomplete.backspaceTriggersAutocomplete", false);
+        lumine.config.set("autocomplete.backspaceTriggersAutocomplete", false);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.setCursorBufferPosition([2, 39]); // at the end of `items`
 
-        let key = atom.keymaps.constructor.buildKeydownEvent("backspace", {
+        let key = lumine.keymaps.constructor.buildKeydownEvent("backspace", {
           target: document.activeElement,
         });
-        atom.keymaps.handleKeyboardEvent(key);
+        lumine.keymaps.handleKeyboardEvent(key);
 
         await timeoutPromise(100);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
@@ -2528,11 +2528,11 @@ defm`);
         triggerAutocompletion(editor, false);
 
         autocompleteManager.hideSuggestionList();
-        editorView = atom.views.getView(editor);
-        atom.commands.dispatch(editorView, "core:move-down");
+        editorView = lumine.views.getView(editor);
+        lumine.commands.dispatch(editorView, "core:move-down");
         expect(editor.getCursorBufferPosition().row).toBe(1);
 
-        atom.commands.dispatch(editorView, "core:move-up");
+        lumine.commands.dispatch(editorView, "core:move-up");
         expect(editor.getCursorBufferPosition().row).toBe(0);
       });
     });
@@ -2540,12 +2540,12 @@ defm`);
 
   describe("when a long completion exists", () => {
     beforeEach(async () => {
-      atom.config.set("autocomplete.enableAutoActivation", true);
+      lumine.config.set("autocomplete.enableAutoActivation", true);
 
-      editor = await atom.workspace.open("samplelong.js");
+      editor = await lumine.workspace.open("samplelong.js");
 
       // Activate the package
-      mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+      mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
 
       await conditionPromise(() => mainModule.autocompleteManager);
       autocompleteManager = mainModule.autocompleteManager;
@@ -2570,7 +2570,7 @@ defm`);
 
     beforeEach(async () => {
       // Activate package.
-      const pck = await atom.packages.activatePackage("autocomplete");
+      const pck = await lumine.packages.activatePackage("autocomplete");
       mainModule = pck.mainModule;
 
       autocompleteManager = mainModule.autocompleteManager;
@@ -2594,14 +2594,14 @@ defm`);
       };
       mainModule.consumeAutocomplete(centerProvider);
 
-      editor = await atom.workspace.open("");
-      editorView = atom.views.getView(editor);
+      editor = await lumine.workspace.open("");
+      editorView = lumine.views.getView(editor);
 
       // Create an editor in the bottom panel,
       // requesting autocompletions from a given label.
       bottomEditor = new TextEditor();
-      bottomEditorView = atom.views.getView(bottomEditor);
-      atom.workspace.addBottomPanel({ item: bottomEditorView, visible: true });
+      bottomEditorView = lumine.views.getView(bottomEditor);
+      lumine.workspace.addBottomPanel({ item: bottomEditorView, visible: true });
       autocompleteDisposable = autocompleteManager.watchEditor(bottomEditor, ["bottom-label"]);
     });
 
@@ -2638,8 +2638,8 @@ defm`);
     it("shows the suggestion overlay on screen for a mini editor in a panel.", async () => {
       // Regression test: mini editors keep the stylesheet `contain` value
       // (pane editors get an inline `contain: size` from the component). With
-      // layout/paint containment on atom-text-editor, the editor became the
-      // containing block for its position-fixed atom-overlay child and
+      // layout/paint containment on lumine-text-editor, the editor became the
+      // containing block for its position-fixed lumine-overlay child and
       // paint-clipped it, so the suggestion list of a panel editor (e.g. the
       // search-panel find field) was confirmed "blind" — active but invisible.
       // The suite attaches the workspace without a height, which collapses it
@@ -2650,10 +2650,10 @@ defm`);
       workspaceElement.style.height = "400px";
 
       const miniEditor = new TextEditor({ mini: true });
-      const miniView = atom.views.getView(miniEditor);
+      const miniView = lumine.views.getView(miniEditor);
       const container = document.createElement("div");
       container.appendChild(miniView);
-      atom.workspace.addBottomPanel({ item: container, visible: true });
+      lumine.workspace.addBottomPanel({ item: container, visible: true });
       autocompleteManager.watchEditor(miniEditor, ["bottom-label"]);
 
       miniView.focus();
@@ -2667,7 +2667,7 @@ defm`);
 
       // The overlay wrapper is position: fixed with viewport coordinates; the
       // editor must not re-root it, so its client rect matches its style.
-      const overlay = miniView.querySelector("atom-overlay");
+      const overlay = miniView.querySelector("lumine-overlay");
       expect(overlay).toExist();
       const overlayRect = overlay.getBoundingClientRect();
       expect(overlayRect.height).toBeGreaterThan(0);

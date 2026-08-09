@@ -6,29 +6,29 @@ const {
 } = require("./spec-helper");
 const path = require("path");
 
-const { Range } = require("atom");
+const { Range } = require("lumine");
 
 describe("Provider API", () => {
   let [editor, mainModule, autocompleteManager, registration, testProvider, testProvider2] = [];
 
   beforeEach(async () => {
-    atom.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
+    lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
 
     // Set to live completion
-    atom.config.set("autocomplete.enableAutoActivation", true);
-    atom.config.set("editor.fontSize", "16");
+    lumine.config.set("autocomplete.enableAutoActivation", true);
+    lumine.config.set("editor.fontSize", "16");
 
     // Set the completion delay
-    atom.config.set("autocomplete.autoActivationDelay", 100);
+    lumine.config.set("autocomplete.autoActivationDelay", 100);
 
-    let workspaceElement = atom.views.getView(atom.workspace);
+    let workspaceElement = lumine.views.getView(lumine.workspace);
     jasmine.attachToDOM(workspaceElement);
 
     // Activate the package
-    await atom.packages.activatePackage("language-javascript");
-    editor = await atom.workspace.open("sample.js");
-    mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+    await lumine.packages.activatePackage("language-javascript");
+    editor = await lumine.workspace.open("sample.js");
+    mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
 
     await conditionPromise(() => {
       autocompleteManager = mainModule.autocompleteManager;
@@ -63,7 +63,7 @@ describe("Provider API", () => {
             ".source.js",
           ).length,
         ).toEqual(1);
-        registration = atom.packages.serviceHub.provide("autocomplete.provider", "1.0.0", [
+        registration = lumine.packages.serviceHub.provide("autocomplete.provider", "1.0.0", [
           testProvider,
         ]);
         return expect(
@@ -88,7 +88,7 @@ describe("Provider API", () => {
             ".source.js",
           ).length,
         ).toEqual(1);
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -122,7 +122,7 @@ describe("Provider API", () => {
             ".source.js",
           ).length,
         ).toEqual(1);
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -133,7 +133,7 @@ describe("Provider API", () => {
             ".source.js",
           ).length,
         ).toEqual(2);
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider2,
@@ -158,7 +158,7 @@ describe("Provider API", () => {
           },
         };
 
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -194,7 +194,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -233,7 +233,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -261,7 +261,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -295,7 +295,7 @@ describe("Provider API", () => {
             return Object.assign({}, suggestion, { description: "foo" });
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -328,7 +328,7 @@ describe("Provider API", () => {
             );
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -357,7 +357,7 @@ describe("Provider API", () => {
             return new Promise(() => {});
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -391,7 +391,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -419,7 +419,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -452,7 +452,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -480,7 +480,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -506,7 +506,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -537,7 +537,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -563,7 +563,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -628,11 +628,11 @@ describe("Provider API", () => {
 
   describe("range-based replacement", () => {
     const triggerAutocompletion = () => {
-      atom.commands.dispatch(atom.views.getView(editor), "autocomplete:activate");
+      lumine.commands.dispatch(lumine.views.getView(editor), "autocomplete:activate");
       return waitForAutocomplete(editor);
     };
     const confirmChoice = () => {
-      atom.commands.dispatch(atom.views.getView(editor), "autocomplete:confirm");
+      lumine.commands.dispatch(lumine.views.getView(editor), "autocomplete:confirm");
       return waitForAutocompleteToDisappear(editor);
     };
 
@@ -751,7 +751,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,
@@ -765,7 +765,7 @@ describe("Provider API", () => {
 
     describe("when `firstCharacterMustMatch` is `true`", () => {
       beforeEach(() => {
-        atom.config.set("autocomplete.firstCharacterMustMatch", true);
+        lumine.config.set("autocomplete.firstCharacterMustMatch", true);
       });
 
       it("ignores `prefix` if `ranges` is present", async () => {
@@ -788,7 +788,7 @@ describe("Provider API", () => {
             ];
           },
         };
-        registration = atom.packages.serviceHub.provide(
+        registration = lumine.packages.serviceHub.provide(
           "autocomplete.provider",
           "1.0.0",
           testProvider,
@@ -833,7 +833,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,
@@ -861,17 +861,17 @@ describe("Provider API", () => {
 
   describe("text edits", () => {
     function triggerAutocompletion() {
-      atom.commands.dispatch(atom.views.getView(editor), "autocomplete:activate");
+      lumine.commands.dispatch(lumine.views.getView(editor), "autocomplete:activate");
       return waitForAutocomplete(editor);
     }
 
     function confirmChoice() {
-      atom.commands.dispatch(atom.views.getView(editor), "autocomplete:confirm");
+      lumine.commands.dispatch(lumine.views.getView(editor), "autocomplete:confirm");
       return waitForAutocompleteToDisappear(editor);
     }
 
     beforeEach(async () => {
-      await atom.packages.activatePackage("snippets");
+      await lumine.packages.activatePackage("snippets");
       editor.setText("");
     });
 
@@ -896,7 +896,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,
@@ -931,7 +931,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,
@@ -969,7 +969,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,
@@ -1005,7 +1005,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,
@@ -1051,7 +1051,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,
@@ -1101,7 +1101,7 @@ describe("Provider API", () => {
           ];
         },
       };
-      registration = atom.packages.serviceHub.provide(
+      registration = lumine.packages.serviceHub.provide(
         "autocomplete.provider",
         "1.0.0",
         testProvider,

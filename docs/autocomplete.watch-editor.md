@@ -45,7 +45,7 @@ Returns a `Disposable` that stops watching.
 ## Minimal example
 
 ```js
-const { CompositeDisposable } = require("atom");
+const { CompositeDisposable } = require("lumine");
 
 module.exports = {
   activate() {

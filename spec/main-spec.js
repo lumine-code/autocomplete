@@ -8,28 +8,28 @@ describe("Autocomplete", () => {
   let mainModule;
 
   beforeEach(async () => {
-    atom.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
+    lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
 
     // Set to live completion
-    atom.config.set("autocomplete.enableAutoActivation", true);
-    atom.config.set("autocomplete.fileBlacklist", [".*", "*.md"]);
+    lumine.config.set("autocomplete.enableAutoActivation", true);
+    lumine.config.set("autocomplete.fileBlacklist", [".*", "*.md"]);
 
-    let workspaceElement = atom.views.getView(atom.workspace);
+    let workspaceElement = lumine.views.getView(lumine.workspace);
     jasmine.attachToDOM(workspaceElement);
 
-    editor = await atom.workspace.open("sample.js");
-    await atom.packages.activatePackage("language-javascript");
+    editor = await lumine.workspace.open("sample.js");
+    await lumine.packages.activatePackage("language-javascript");
 
     // Activate the package
-    mainModule = (await atom.packages.activatePackage("autocomplete")).mainModule;
+    mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
 
     await conditionPromise(
       () => mainModule.autocompleteManager && mainModule.autocompleteManager.ready,
     );
 
     autocompleteManager = mainModule.autocompleteManager;
-    editorView = atom.views.getView(editor);
+    editorView = lumine.views.getView(editor);
   });
 
   describe("@activate()", () =>
@@ -49,7 +49,7 @@ describe("Autocomplete", () => {
       expect(editorView.querySelector(".autocomplete")).toExist();
 
       // Deactivate the package
-      await atom.packages.deactivatePackage("autocomplete");
+      await lumine.packages.deactivatePackage("autocomplete");
       expect(editorView.querySelector(".autocomplete")).not.toExist();
     });
   });

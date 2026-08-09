@@ -16,7 +16,7 @@ To turn a language server into a completion source, register an adapter with `id
 The following TypeScript-style block describes the service in full.
 
 ```ts
-import { Point, Range, ScopeDescriptor, TextEditor } from "atom";
+import { Point, Range, ScopeDescriptor, TextEditor } from "lumine";
 
 /**
  * A {@link Range} or any object that can be accepted by {@link

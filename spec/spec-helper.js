@@ -1,20 +1,20 @@
 beforeEach(() => {
-  spyOn(atom.views, "readDocument").andCallFake((fn) => fn());
-  spyOn(atom.views, "updateDocument").andCallFake((fn) => fn());
-  atom.config.set("autocomplete.minimumWordLength", 1);
-  atom.config.set("autocomplete.suggestionListFollows", "Word");
-  atom.config.set("autocomplete.useCoreMovementCommands", true);
-  atom.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
+  spyOn(lumine.views, "readDocument").andCallFake((fn) => fn());
+  spyOn(lumine.views, "updateDocument").andCallFake((fn) => fn());
+  lumine.config.set("autocomplete.minimumWordLength", 1);
+  lumine.config.set("autocomplete.suggestionListFollows", "Word");
+  lumine.config.set("autocomplete.useCoreMovementCommands", true);
+  lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
 });
 
 function waitForAutocomplete(editor) {
-  const editorView = atom.views.getView(editor);
+  const editorView = lumine.views.getView(editor);
 
   return conditionPromise(() => editorView.querySelectorAll(".autocomplete li").length > 0);
 }
 
 function waitForAutocompleteToDisappear(editor) {
-  const editorView = atom.views.getView(editor);
+  const editorView = lumine.views.getView(editor);
 
   return conditionPromise(() => editorView.querySelectorAll(".autocomplete li").length === 0);
 }

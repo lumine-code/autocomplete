@@ -263,9 +263,11 @@ describe("Suggestion List Element", () => {
 
     it("does not rewrite links in provider documentation", () => {
       suggestionListElement.updateDescription({
-        descriptionMarkdown: "[docs](https://atom.io/packages/foo)",
+        descriptionMarkdown: "[docs](https://example.com/packages/foo)",
       });
-      expect(content.querySelector("a").getAttribute("href")).toBe("https://atom.io/packages/foo");
+      expect(content.querySelector("a").getAttribute("href")).toBe(
+        "https://example.com/packages/foo",
+      );
     });
 
     it("does not turn a wrapped line into a break", () => {
@@ -279,7 +281,7 @@ describe("Suggestion List Element", () => {
       });
       // `applySyntaxHighlighting` swaps the `pre` for a read-only editor.
       expect(content.querySelector("pre")).toBeNull();
-      const editorElement = content.querySelector("atom-text-editor");
+      const editorElement = content.querySelector("lumine-text-editor");
       expect(editorElement).not.toBeNull();
       expect(editorElement.getModel().getText()).toBe("let x = 1");
     });
@@ -288,10 +290,10 @@ describe("Suggestion List Element", () => {
       suggestionListElement.updateDescription({
         descriptionMarkdown: "```js\nlet x = 1\n```",
       });
-      const editor = content.querySelector("atom-text-editor").getModel();
+      const editor = content.querySelector("lumine-text-editor").getModel();
 
       suggestionListElement.updateDescription({ description: "plain" });
-      expect(content.querySelector("atom-text-editor")).toBeNull();
+      expect(content.querySelector("lumine-text-editor")).toBeNull();
       expect(content.classList.contains("markdown-description")).toBe(false);
       expect(editor.isDestroyed()).toBe(true);
     });
