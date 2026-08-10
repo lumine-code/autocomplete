@@ -59,6 +59,14 @@ lumine-overlay.autocomplete::after {
   top: 1px;
 }
 
+/* Pushed off its line to clear another overlay, the popup is no longer beside
+   the word it completes, so the arrow would point at whatever sits between
+   them. */
+lumine-overlay.autocomplete[data-overlay-displaced]::before,
+lumine-overlay.autocomplete[data-overlay-displaced]::after {
+  content: none;
+}
+
 lumine-overlay.autocomplete[data-overlay-position="above"] {
   &::before,
   &::after {
