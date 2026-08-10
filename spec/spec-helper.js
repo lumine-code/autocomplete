@@ -1,6 +1,6 @@
 beforeEach(() => {
-  spyOn(lumine.views, "readDocument").andCallFake((fn) => fn());
-  spyOn(lumine.views, "updateDocument").andCallFake((fn) => fn());
+  spyOn(lumine.views, "readDocument").and.callFake((fn) => fn());
+  spyOn(lumine.views, "updateDocument").and.callFake((fn) => fn());
   lumine.config.set("autocomplete.minimumWordLength", 1);
   lumine.config.set("autocomplete.suggestionListFollows", "Word");
   lumine.config.set("autocomplete.useCoreMovementCommands", true);
