@@ -251,7 +251,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@lumine-code/fs-plus": "github:lumine-code/fs-plus#0eaa0b11aa3f9866112a9e4b275df3d53df3cac6",
+    "@lumine-code/fs-plus": "github:lumine-code/fs-plus#8058c4ee899012b1bc6fa92d74d61220659d2da9",
     "@lumine-code/temp": "github:lumine-code/node-temp#6c6a5887bd452ab659ab1b5b9923b570cb83ef32",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
