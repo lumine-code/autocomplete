@@ -13,7 +13,7 @@ Display possible completions while you type.
 
 ## Installation
 
-To install `autocomplete` search for _autocomplete_ in the Install pane of the Lumine settings or run `lumine --install lumine-code/autocomplete`.
+To install `autocomplete` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/autocomplete`.
 
 ## Commands
 
@@ -30,9 +30,9 @@ Commands available in `lumine-text-editor.autocomplete-active`:
 
 ## Services
 
-- **[autocomplete.watch-editor](docs/autocomplete.watch-editor.md)** (`1.0.0`): provided to let other packages register an editor to be watched for autocompletion along with the set of providers to use for it.
-- **[autocomplete.provider](docs/autocomplete.provider.md)** (`^1.0.0`): consumed to register external suggestion providers that contribute completions.
-- **snippets** (`^1.0.0`): consumed to expand snippet-based suggestions when confirmed.
+- [`autocomplete.watch-editor`](docs/autocomplete.watch-editor.md): provided to let other packages register an editor to be watched for autocompletion along with the set of providers to use for it.
+- [`autocomplete.provider`](docs/autocomplete.provider.md): consumed to register external suggestion providers that contribute completions.
+- `snippets`: consumed to expand snippet-based suggestions when confirmed.
 
 ## Contributing
 

@@ -427,9 +427,7 @@ In your `package.json`, add:
 }
 ```
 
-Name the method `provideAutocomplete`: the convention across the workspace is
-`provide`/`consume` plus the PascalCased service name, with a trailing
-`provider` segment dropped.
+Name the method `provideAutocomplete`: the convention across the workspace is `provide`/`consume` plus the PascalCased service name, with a trailing `provider` segment dropped.
 
 Then, in your main package export, define a method of the same name:
 
