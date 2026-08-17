@@ -2637,6 +2637,26 @@ defm`);
       expect(bottomEditorView.querySelector(".autocomplete")).not.toExist();
     });
 
+    it("ignores autocomplete:activate dispatched from an editor it is not watching.", async () => {
+      // Regression test: the handler read this.editor without checking the
+      // dispatch target, so activating from an unwatched editor (a prompt a
+      // package built itself, like git-panel's commit box) raised the overlay
+      // in whichever watched editor held focus last.
+      editorView.focus();
+
+      const strayEditor = new TextEditor();
+      const strayView = lumine.views.getView(strayEditor);
+      lumine.workspace.addBottomPanel({ item: strayView, visible: true });
+      strayView.focus();
+
+      lumine.commands.dispatch(strayView, "autocomplete:activate");
+      await timeoutPromise(100);
+
+      expect(editorView.querySelector(".autocomplete")).not.toExist();
+      expect(strayView.querySelector(".autocomplete")).not.toExist();
+      strayEditor.destroy();
+    });
+
     it("shows the suggestion overlay on screen for a mini editor in a panel.", async () => {
       // Regression test: mini editors keep the stylesheet `contain` value
       // (pane editors get an inline `contain: size` from the component). With
