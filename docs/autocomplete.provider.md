@@ -305,8 +305,10 @@ type ServiceProvider = {
   disableForScopeSelector?: string;
 
   /**
-   * The priority of this provider relative to others. Higher numbers beat
-   * lower numbers.
+   * Whether this provider survives another provider's `excludeLowerPriority`.
+   * Higher numbers beat lower numbers. It has no effect on ordering — that is
+   * `suggestionPriority` alone. Defaults to 0, at which any provider setting
+   * `excludeLowerPriority` drops yours from the list entirely, so declare one.
    */
   inclusionPriority: number;
 
@@ -317,9 +319,11 @@ type ServiceProvider = {
   excludeLowerPriority: boolean;
 
   /**
-   * The priority of this provider's suggestions relative to other suggestions
-   * that may exist in the list. Influences the ordering of suggestions within
-   * a menu.
+   * Where this provider's suggestions sit in the list, relative to every other
+   * provider answering the same request. Higher numbers come first. This is
+   * the only thing that decides the position of your block — see "Ranking"
+   * below, and pick the value from the ladder there rather than inventing one.
+   * Defaults to 1, which is below every general-purpose provider.
    */
   suggestionPriority: number;
 
@@ -467,6 +471,23 @@ module.exports = {
   },
 };
 ```
+
+## Ranking
+
+**Each provider's suggestions are a block, and `suggestionPriority` alone decides where that block sits.** Providers are sorted by `suggestionPriority` descending — `scopeSelector` specificity breaks a tie, and nothing else enters into it — and each provider's results are then concatenated in that order. Scoring happens strictly _inside_ a block: a provider that sets `filterSuggestions` has its own items ranked by how well they match what was typed, but that ranking never crosses a block boundary. So an exact match from a low-priority provider still sits below a loose one from a high-priority provider, and a provider that leaves `suggestionPriority` unset takes the default of 1 and lands beneath every general-purpose provider in the ecosystem — including in the language it is the expert on.
+
+Pick the value from this ladder, by what the provider _knows_ rather than by how much you want to see it:
+
+| value | tier            | the claim                                                                                               | examples                                                                                                               |
+| ----- | --------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 100   | special case    | answers a different question entirely, and only in a situation nothing else speaks to                   | `spell-check`, which offers corrections only for a word already flagged as misspelled                                  |
+| 5     | live runtime    | inspected an actual running process, so it knows what really exists rather than what the source implies | `jupyter-repl`, completing against the live kernel namespace                                                           |
+| 4     | domain expert   | authoritative for one language or domain, from knowledge specific to it                                 | `autocomplete-css`, `autocomplete-html`, `autocomplete-jedi`, `autocomplete-lumine`, `autocomplete-sofistik`, `colors` |
+| 3     | trigger-gated   | crosses languages, but answers only when a specific syntactic trigger matched                           | `autocomplete-paths`, which fires only once a path prefix is on the line                                               |
+| 2     | general purpose | broadly useful, always on, no single domain                                                             | `ide-client` (language servers), `autocomplete-snippets`                                                               |
+| 0     | fallback        | no knowledge of the language at all                                                                     | the built-in provider, completing words already in the buffer                                                          |
+
+Two rules keep the ladder honest. **A tier above 2 has to be earned by narrowness, not by ambition** — every provider at 3 or above returns nothing at all in the situations it does not own, so it costs the tiers below it nothing; a provider that answers most requests belongs at 2 however good its answers are. And **being outranked is not being hidden**: a lower block still appears, just further down, so reach for `excludeLowerPriority` only when the other suggestions would be actively wrong.
 
 ## Behavior
 
