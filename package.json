@@ -30,6 +30,9 @@
   "backgroundTips": [
     "You can bring up the completion list at any moment with {{ 'autocomplete:activate' | keystroke }}"
   ],
+  "specPackages": [
+    "language-coffee-script"
+  ],
   "scripts": {
     "test": "lumine --test spec",
     "lint": "eslint . --max-warnings 0",

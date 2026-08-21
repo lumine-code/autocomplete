@@ -91,6 +91,12 @@ jobs:
       - name: Rebuild native modules for Electron
         working-directory: lumine
         run: npm run build
+      # Some specs activate packages the editor no longer bundles; the manifest
+      # names them in `specPackages` and this clones them into a scratch
+      # LUMINE_HOME, exporting it (and LUMINE_TEST_PACKAGES) for the spec step.
+      - name: Install spec dependency packages
+        working-directory: lumine
+        run: node script/install-spec-packages.js --package ../autocomplete --home "$RUNNER_TEMP/lumine-home" --github-env "$GITHUB_ENV"
       - name: Run the Jasmine spec suite
         working-directory: lumine
         timeout-minutes: 20
