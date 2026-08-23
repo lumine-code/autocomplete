@@ -249,13 +249,13 @@
     }
   },
   "dependencies": {
-    "@lumine-code/selector-kit": "github:lumine-code/selector-kit#46b4fc786ecf84d979fe43d943e7c41be6e91bcc",
+    "@lumine-code/selector-kit": "github:lumine-code/selector-kit#bfa3fe7c20205e19892d902c2b81dd51b372ad68",
     "picomatch": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@lumine-code/fs-plus": "github:lumine-code/fs-plus#ba2792e2fd5637748cdc9317886e6d3cac2ce801",
-    "@lumine-code/temp": "github:lumine-code/node-temp#dea2a8044298b52fbeeb0aef257706dd6d671927",
+    "@lumine-code/fs-plus": "github:lumine-code/fs-plus#85044c6ec927cf5429fea84c82ff7f90eeab0026",
+    "@lumine-code/temp": "github:lumine-code/node-temp#2a0b2ce5f1c90a8041f6043cfe52d75ceadb364d",
     "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-n": "^18.3.0",
