@@ -122,9 +122,9 @@ describe("SubsequenceProvider", () => {
   });
 
   it("does not output suggestions from the other buffer", async () => {
-    await lumine.packages.activatePackage("language-coffee-script");
-    const coffeeEditor = await lumine.workspace.open("sample.coffee");
-    const suggestions = await suggestionsForPrefix(provider, coffeeEditor, "item");
+    await lumine.packages.activatePackage("language-text");
+    const otherEditor = await lumine.workspace.open("other-buffer.txt");
+    const suggestions = await suggestionsForPrefix(provider, otherEditor, "item");
 
     expect(suggestions).toHaveLength(0);
   });
@@ -245,8 +245,8 @@ describe("SubsequenceProvider", () => {
     beforeEach(async () => {
       lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", true);
 
-      await lumine.packages.activatePackage("language-coffee-script");
-      editor = await lumine.workspace.open("sample.coffee");
+      await lumine.packages.activatePackage("language-text");
+      editor = await lumine.workspace.open("other-buffer.txt");
     });
 
     afterEach(() => {
