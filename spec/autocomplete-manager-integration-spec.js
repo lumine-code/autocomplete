@@ -340,6 +340,30 @@ describe("Autocomplete Manager", () => {
       }));
 
     describe("when multiple cursors are defined", () => {
+      it("handles one cursor-move event for a multi-selection command", () => {
+        editor.setText("abcdef");
+        editor.setSelectedBufferRanges([
+          [
+            [0, 0],
+            [0, 0],
+          ],
+          [
+            [0, 2],
+            [0, 2],
+          ],
+          [
+            [0, 4],
+            [0, 4],
+          ],
+        ]);
+        autocompleteManager = mainModule.autocompleteManager;
+        const cursorMoved = spyOn(autocompleteManager, "cursorMoved").and.callThrough();
+
+        editor.selectRight();
+
+        expect(cursorMoved.calls.count()).toBe(1);
+      });
+
       it("autocompletes word when there is only a prefix", async () => {
         spyOn(provider, "getSuggestions").and.callFake(() => [{ text: "shift" }]);
 
