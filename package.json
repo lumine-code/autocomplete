@@ -122,6 +122,7 @@
     "extraWordCharacters": {
       "title": "Extra Word Characters",
       "description": "Characters to consider part of words for the purpose of autocomplete, even if they are included in the editor.nonWordCharacters setting",
+      "scopeResolution": "syntax",
       "type": "string",
       "default": ""
     },
