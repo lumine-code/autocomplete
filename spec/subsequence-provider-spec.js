@@ -98,7 +98,7 @@ describe("SubsequenceProvider", () => {
   });
 
   it("does not return the prefix as a suggestion", async () => {
-    lumine.config.set("language.nonWordCharacters", "-");
+    lumine.config.set("editor.nonWordCharacters", "-");
     lumine.config.set("autocomplete.extraWordCharacters", "-");
 
     editor.moveToBottom();
@@ -219,12 +219,12 @@ describe("SubsequenceProvider", () => {
     });
   });
 
-  describe("when language.nonWordCharacters changes", () => {
-    it("includes characters that are included in the `autocomplete.extraWordCharacters` setting or not excluded in the `language.nonWordCharacters` setting", async () => {
+  describe("when editor.nonWordCharacters changes", () => {
+    it("includes characters that are included in the `autocomplete.extraWordCharacters` setting or not excluded in the `editor.nonWordCharacters` setting", async () => {
       const scopeSelector = editor.getLastCursor().getScopeDescriptor().getScopeChain();
       editor.insertText("good$noodles good-beef ");
 
-      lumine.config.set("language.nonWordCharacters", "$-", { scopeSelector });
+      lumine.config.set("editor.nonWordCharacters", "$-", { scopeSelector });
       let sugs = await suggestionsForPrefix(provider, editor, "good");
       expect(sugs).not.toContain("good$noodles");
       expect(sugs).not.toContain("good-beef");
@@ -234,7 +234,7 @@ describe("SubsequenceProvider", () => {
       expect(sugs).toContain("good-beef");
       expect(sugs).not.toContain("good$noodles");
 
-      lumine.config.set("language.nonWordCharacters", "-", { scopeSelector });
+      lumine.config.set("editor.nonWordCharacters", "-", { scopeSelector });
       sugs = await suggestionsForPrefix(provider, editor, "good");
       expect(sugs).toContain("good-beef");
       expect(sugs).toContain("good$noodles");
@@ -305,7 +305,7 @@ describe("SubsequenceProvider", () => {
   describe("when the legacy completions array is used", () => {
     beforeEach(() => {
       editor.setText("// abcomment");
-      lumine.config.set("language.completions", ["abcd", "abcde", "abcdef"], {
+      lumine.config.set("editor.completions", ["abcd", "abcde", "abcdef"], {
         scopeSelector: ".source.js .comment",
       });
     });

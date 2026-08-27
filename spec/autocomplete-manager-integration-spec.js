@@ -609,7 +609,7 @@ describe("Autocomplete Manager", () => {
 
           mainModule.consumeAutocomplete(provider, 4);
 
-          lumine.config.set("language.nonWordCharacters", "-");
+          lumine.config.set("editor.nonWordCharacters", "-");
           editor.insertText(" $foo-$ba");
           editor.insertText("r");
           await suggestionsPromise;
@@ -1202,7 +1202,7 @@ describe("Autocomplete Manager", () => {
 
       describe("providers using the 4.0 API", () => {
         it("replaces the entire prefix by default, regardless of the characters it contains", async () => {
-          lumine.config.set("language.nonWordCharacters", "-");
+          lumine.config.set("editor.nonWordCharacters", "-");
           provider = {
             scopeSelector: "*",
             inclusionPriority: 100,
@@ -1698,7 +1698,7 @@ describe("Autocomplete Manager", () => {
           // set. Reading the setting unscoped ignored the override and left
           // the suffix untouched.
           const scopeSelector = `.${editor.getRootScopeDescriptor().getScopesArray()[0]}`;
-          lumine.config.set("language.nonWordCharacters", "(", { scopeSelector });
+          lumine.config.set("editor.nonWordCharacters", "(", { scopeSelector });
 
           spyOn(provider, "getSuggestions").and.callFake(() => [
             { text: "oneomgtwo()", replacementPrefix: "one" },
