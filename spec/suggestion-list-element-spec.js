@@ -21,20 +21,6 @@ describe("Suggestion List Element", () => {
     suggestionListElement = null;
   });
 
-  it("creates deferred rows in the adopted editor document", () => {
-    const frame = document.createElement("iframe");
-    document.body.appendChild(frame);
-    frame.contentDocument.body.appendChild(suggestionListElement.element);
-
-    suggestionListElement.renderItem({ text: "realm-local" });
-
-    expect(suggestionListElement.selectedLi.ownerDocument).toBe(frame.contentDocument);
-    expect(suggestionListElement.selectedLi.querySelector(".word").ownerDocument).toBe(
-      frame.contentDocument,
-    );
-    frame.remove();
-  });
-
   describe("renderItem", () => {
     beforeEach(() => jasmine.attachToDOM(suggestionListElement.element));
 

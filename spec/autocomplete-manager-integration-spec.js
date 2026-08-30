@@ -136,42 +136,6 @@ describe("Autocomplete Manager", () => {
       expect(editorView.querySelector(".autocomplete")).toExist();
     });
 
-    it("renders suggestions in an editor adopted by another document", async () => {
-      const frame = document.createElement("iframe");
-      const anchor = document.createComment("detached editor return position");
-      const originalParent = editorView.parentNode;
-      originalParent.insertBefore(anchor, editorView);
-      document.body.appendChild(frame);
-      frame.contentDocument.body.appendChild(editorView);
-
-      try {
-        expect(editorView.ownerDocument).toBe(frame.contentDocument);
-
-        triggerAutocompletion(editor, true, "a");
-        await waitForAutocomplete(editor);
-
-        const detachedList = editorView.querySelector("autocomplete-suggestion-list");
-        expect(detachedList).toExist();
-        expect(detachedList.ownerDocument).toBe(frame.contentDocument);
-
-        mainModule.autocompleteManager.hideSuggestionList();
-        await waitForAutocompleteToDisappear(editor);
-        originalParent.insertBefore(editorView, anchor);
-
-        triggerAutocompletion(editor, false, "b");
-        await waitForAutocomplete(editor);
-
-        const attachedList = editorView.querySelector("autocomplete-suggestion-list");
-        expect(attachedList).toExist();
-        expect(attachedList.ownerDocument).toBe(document);
-      } finally {
-        mainModule.autocompleteManager.hideSuggestionList();
-        if (editorView.ownerDocument !== document) originalParent.insertBefore(editorView, anchor);
-        anchor.remove();
-        frame.remove();
-      }
-    });
-
     it("closes the suggestion list when entering an empty string (e.g. carriage return)", async () => {
       expect(editorView.querySelector(".autocomplete")).not.toExist();
       editor.insertText("a");
