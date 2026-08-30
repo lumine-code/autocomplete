@@ -24,7 +24,6 @@ describe("Suggestion List Element", () => {
   it("creates deferred rows in the adopted editor document", () => {
     const frame = document.createElement("iframe");
     document.body.appendChild(frame);
-    suggestionListElement.adoptDocument(frame.contentDocument);
     frame.contentDocument.body.appendChild(suggestionListElement.element);
 
     suggestionListElement.renderItem({ text: "realm-local" });
