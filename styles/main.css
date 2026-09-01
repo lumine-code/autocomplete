@@ -184,6 +184,7 @@ autocomplete-suggestion-list.select-list.popover-list {
     font-size: var(--prose-font-size);
     font-family: var(--font-family);
     color: var(--accent-only-text-color);
+    cursor: default;
   }
 
   input {
