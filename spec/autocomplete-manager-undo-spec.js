@@ -1,7 +1,7 @@
 const { conditionPromise, waitForAutocomplete } = require("./spec-helper");
 const path = require("path");
 
-describe("Autocomplete Manager", () => {
+describe("Autocomplete Manager undo transactions", () => {
   let editorView;
   let editor;
   let mainModule;

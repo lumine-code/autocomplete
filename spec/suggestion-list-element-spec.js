@@ -416,7 +416,7 @@ describe("Suggestion List Element", () => {
       expect(fragmentToHtml(html)).toBe('<span class="character-match">a</span>bc(d, e)f');
     });
 
-    it("replaces a snippet with no escaped right braces", () => {
+    it("replaces unescaped right braces in snippet placeholders", () => {
       let text = "";
       let snippet = "abc(${1:d}, ${2:e})f";
       let replacementPrefix = "a";
@@ -426,7 +426,7 @@ describe("Suggestion List Element", () => {
       );
     });
 
-    it("replaces a snippet with no escaped right braces", () => {
+    it("matches replacement characters inside snippet placeholders", () => {
       let text = "";
       let snippet = "text(${1:ab}, ${2:cd})";
       let replacementPrefix = "ta";

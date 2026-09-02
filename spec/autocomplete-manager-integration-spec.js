@@ -19,7 +19,7 @@ function simulateClick(element) {
   element.dispatchEvent(new PointerEvent("click", { bubbles: true, cancelable: true }));
 }
 
-describe("Autocomplete Manager", () => {
+describe("Autocomplete Manager integration", () => {
   let autocompleteManager, editor, editorView, gutterWidth, mainModule, workspaceElement;
 
   let pixelLeftForBufferPosition = (bufferPosition) => {
@@ -440,7 +440,7 @@ describe("Autocomplete Manager", () => {
         ]);
       });
 
-      it("should show the suggestion list when the suppression list does not match", async () => {
+      it("shows suggestions for an unsuppressed vim insert mode", async () => {
         editorView.classList.add("vim-mode");
         editorView.classList.add("insert-mode");
 
@@ -451,7 +451,7 @@ describe("Autocomplete Manager", () => {
         expect(editorView.querySelector(".autocomplete")).toExist();
       });
 
-      it("should not show the suggestion list when the suppression list does match", async () => {
+      it("suppresses suggestions in vim command mode", async () => {
         editorView.classList.add("vim-mode");
         editorView.classList.add("command-mode");
 
@@ -460,7 +460,7 @@ describe("Autocomplete Manager", () => {
         await waitForAutocompleteToDisappear(editor);
       });
 
-      it("should not show the suggestion list when the suppression list does match", async () => {
+      it("suppresses suggestions in vim operator-pending mode", async () => {
         editorView.classList.add("vim-mode");
         editorView.classList.add("operator-pending-mode");
 
@@ -469,7 +469,7 @@ describe("Autocomplete Manager", () => {
         await waitForAutocompleteToDisappear(editor);
       });
 
-      it("should not show the suggestion list when the suppression list does match", async () => {
+      it("suppresses suggestions in vim visual mode", async () => {
         editorView.classList.add("vim-mode");
         editorView.classList.add("visual-mode");
 
@@ -478,7 +478,7 @@ describe("Autocomplete Manager", () => {
         await waitForAutocompleteToDisappear(editor);
       });
 
-      it("should show the suggestion list when the suppression list does not match", async () => {
+      it("shows suggestions for an unlisted vim mode", async () => {
         editorView.classList.add("vim-mode");
         editorView.classList.add("some-unforeseen-mode");
 
@@ -489,7 +489,7 @@ describe("Autocomplete Manager", () => {
         expect(editorView.querySelector(".autocomplete")).toExist();
       });
 
-      it("should show the suggestion list when the suppression list does not match", async () => {
+      it("does not match a compound suppression rule without its parent class", async () => {
         editorView.classList.add("command-mode");
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
@@ -579,7 +579,7 @@ describe("Autocomplete Manager", () => {
         expect(prefix).toBe("");
       });
 
-      it("calls with prefix after non \\b word break", async () => {
+      it("calls with an empty prefix after a quoted assignment", async () => {
         editor.insertText('=""');
         editor.insertText(" ");
         await suggestionsPromise;
@@ -587,7 +587,7 @@ describe("Autocomplete Manager", () => {
         expect(prefix).toBe("");
       });
 
-      it("calls with prefix after non \\b word break", async () => {
+      it("calls with an empty prefix after a question mark", async () => {
         editor.insertText("?");
         editor.insertText(" ");
         await suggestionsPromise;
