@@ -401,24 +401,32 @@ describe("SubsequenceProvider", () => {
       cellB.destroy();
     });
 
-    it("does not source completions from background or mini editors", async () => {
-      const background = new TextEditor();
-      background.setText("backstageword = 1");
-      const backgroundRegistration = lumine.textEditors.add(background, { role: "background" });
+    it("does not source completions from viewers or inputs", async () => {
+      const viewer = new TextEditor();
+      viewer.setText("backstageword = 1");
+      const viewerRegistration = lumine.textEditors.add(viewer, { role: "viewer" });
       const mini = new TextEditor({ mini: true });
       mini.setText("minifiedword");
-      const miniRegistration = lumine.textEditors.add(mini);
+      const miniRegistration = lumine.textEditors.add(mini, { role: "input" });
+      const input = new TextEditor();
+      input.setText("formfieldword");
+      const inputRegistration = lumine.textEditors.add(input, { role: "input" });
 
       const asker = new TextEditor();
       expect(await suggestionsForPrefix(provider, asker, "backstage")).not.toContain(
         "backstageword",
       );
       expect(await suggestionsForPrefix(provider, asker, "minified")).not.toContain("minifiedword");
+      expect(await suggestionsForPrefix(provider, asker, "formfield")).not.toContain(
+        "formfieldword",
+      );
 
-      backgroundRegistration.dispose();
+      viewerRegistration.dispose();
       miniRegistration.dispose();
-      background.destroy();
+      inputRegistration.dispose();
+      viewer.destroy();
       mini.destroy();
+      input.destroy();
       asker.destroy();
     });
 
