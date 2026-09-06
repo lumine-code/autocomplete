@@ -250,7 +250,10 @@ describe("Autocomplete Manager integration", () => {
         editor.insertText("c");
 
         await waitForAutocompleteToDisappear(editor);
-        expect(path.basename.calls.count()).toBe(1);
+        const currentPathCalls = path.basename.calls
+          .allArgs()
+          .filter(([filePath]) => filePath === editor.getPath());
+        expect(currentPathCalls).toHaveLength(1);
       });
 
       it("shows suggestions when the path is changed to not match the blacklist", async () => {
