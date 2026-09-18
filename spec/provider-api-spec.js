@@ -291,8 +291,8 @@ describe("Provider API", () => {
               },
             ];
           },
-          getSuggestionDetailsOnSelect(suggestion) {
-            return Object.assign({}, suggestion, { description: "foo" });
+          getSuggestionDetailsOnSelect() {
+            return { text: "ohai", description: "foo" };
           },
         };
         registration = lumine.packages.serviceHub.provide(
@@ -305,6 +305,7 @@ describe("Provider API", () => {
         await waitForAutocomplete(editor);
 
         expect(autocompleteManager.suggestionList.items[0].description).toBe("foo");
+        expect(autocompleteManager.suggestionList.items[0].provider).toBe(testProvider);
       });
 
       it("waits for an in-flight detail request before inserting", async () => {
