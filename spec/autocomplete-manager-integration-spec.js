@@ -2280,9 +2280,13 @@ defm`);
     describe("Keybind to navigate to descriptionMoreLink", () => {
       it("triggers openExternal on keybind if there is a description", async () => {
         spyOn(provider, "getSuggestions").and.callFake(() => [
-          { text: "ab", description: "it is ab" },
+          {
+            text: "ab",
+            description: "it is ab",
+            descriptionMoreURL: "https://example.com/docs",
+          },
         ]);
-        spyOn(lumine.shell, "openExternal");
+        spyOn(lumine.shell, "openExternal").and.resolveTo();
 
         triggerAutocompletion(editor, true, "a");
         await waitForAutocomplete(editor);
@@ -2290,6 +2294,29 @@ defm`);
         expect(editorView.querySelector(".autocomplete")).toExist();
         lumine.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
         expect(lumine.shell.openExternal).toHaveBeenCalled();
+      });
+
+      it("reports a failure to open completion documentation", async () => {
+        spyOn(provider, "getSuggestions").and.callFake(() => [
+          {
+            text: "ab",
+            description: "it is ab",
+            descriptionMoreURL: "https://example.com/docs",
+          },
+        ]);
+        const error = new Error("no browser");
+        spyOn(lumine.shell, "openExternal").and.rejectWith(error);
+        spyOn(lumine.notifications, "addWarning");
+
+        triggerAutocompletion(editor, true, "a");
+        await waitForAutocomplete(editor);
+        lumine.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
+        await conditionPromise(() => lumine.notifications.addWarning.calls.any());
+
+        expect(lumine.notifications.addWarning).toHaveBeenCalledWith(
+          "Unable to open the completion documentation.",
+          { detail: error.message, dismissable: true },
+        );
       });
 
       it("does not trigger openExternal on keybind if there is not a description", async () => {

@@ -270,6 +270,24 @@ describe("Suggestion List Element", () => {
       );
     });
 
+    it("exposes only supported external description links", () => {
+      const link = suggestionListElement.element.querySelector(".suggestion-description-more-link");
+
+      suggestionListElement.updateDescription({
+        description: "Safe",
+        descriptionMoreURL: "https://example.com/docs",
+      });
+      expect(link.style.display).toBe("inline");
+      expect(link.getAttribute("href")).toBe("https://example.com/docs");
+
+      suggestionListElement.updateDescription({
+        description: "Unsafe",
+        descriptionMoreURL: "javascript:alert(1)",
+      });
+      expect(link.style.display).toBe("none");
+      expect(link.getAttribute("href")).toBe("#");
+    });
+
     it("does not turn a wrapped line into a break", () => {
       suggestionListElement.updateDescription({ descriptionMarkdown: "line one\nline two" });
       expect(content.querySelector("br")).toBeNull();
