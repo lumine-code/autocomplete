@@ -25,7 +25,7 @@ Commands available in `lumine-text-editor`:
 Commands available in `lumine-text-editor.autocomplete-active`:
 
 - `autocomplete:confirm`: insert the selected suggestion,
-- `autocomplete:confirmIfNonDefault`: insert the suggestion only if it is not the default selection,
+- `autocomplete:confirm-if-non-default`: insert the suggestion only if it is not the default selection,
 - `autocomplete:cancel`: dismiss the suggestion list.
 
 ## Services

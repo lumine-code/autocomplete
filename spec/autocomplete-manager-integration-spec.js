@@ -10,6 +10,7 @@ const {
 } = require("./spec-helper");
 let temp = require("@lumine-code/temp").track();
 const path = require("path");
+const SNIPPETS_PATH = path.join(__dirname, "..", "..", "snippets");
 
 let NodeTypeText = 3;
 
@@ -1000,7 +1001,7 @@ describe("Autocomplete Manager integration", () => {
       });
 
       describe("when the snippets package is enabled", () => {
-        beforeEach(() => lumine.packages.activatePackage("snippets"));
+        beforeEach(() => lumine.packages.activatePackage(SNIPPETS_PATH));
 
         it("displays the snippet without the `${1:}` in its own class", async () => {
           triggerAutocompletion(editor, true, "m");
@@ -1124,7 +1125,7 @@ describe("Autocomplete Manager integration", () => {
         });
 
         describe("when the snippets package is enabled", () => {
-          beforeEach(() => lumine.packages.activatePackage("snippets"));
+          beforeEach(() => lumine.packages.activatePackage(SNIPPETS_PATH));
 
           it("does not highlight the snippet html; ref issue 301", async () => {
             spyOn(provider, "getSuggestions").and.callFake(() => [{ snippet: "ab(${1:c})c" }]);
@@ -1892,7 +1893,7 @@ defm`);
           spyOn(provider, "getSuggestions").and.callFake(() => [
             { snippet: "ok(${1:omg})", replacementPrefix: "bcm" },
           ]);
-          await lumine.packages.activatePackage("snippets");
+          await lumine.packages.activatePackage(SNIPPETS_PATH);
         });
 
         it("only replaces the suggestion at cursors whos prefix matches the replacementPrefix", async () => {

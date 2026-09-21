@@ -5,6 +5,7 @@ const {
   waitForAutocompleteToDisappear,
 } = require("./spec-helper");
 const path = require("path");
+const SNIPPETS_PATH = path.join(__dirname, "..", "..", "snippets");
 
 const { Range } = require("lumine");
 
@@ -872,7 +873,7 @@ describe("Provider API", () => {
     }
 
     beforeEach(async () => {
-      await lumine.packages.activatePackage("snippets");
+      await lumine.packages.activatePackage(SNIPPETS_PATH);
       editor.setText("");
     });
 
