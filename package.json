@@ -27,6 +27,9 @@
   "engines": {
     "lumine": "^1.0.0"
   },
+  "specPackages": [
+    "snippets"
+  ],
   "backgroundTips": [
     "You can bring up the completion list at any moment with {{ 'autocomplete:activate' | keystroke }}"
   ],
