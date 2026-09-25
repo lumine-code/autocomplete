@@ -30,9 +30,6 @@
   "specPackages": [
     "snippets"
   ],
-  "backgroundTips": [
-    "You can bring up the completion list at any moment with {{ 'autocomplete:activate' | keystroke }}"
-  ],
   "scripts": {
     "test": "lumine --test spec",
     "lint": "eslint . --max-warnings 0",
@@ -234,6 +231,11 @@
     "autocomplete.watch-editor": {
       "versions": {
         "1.0.0": "provideAutocompleteWatchEditor"
+      }
+    },
+    "background-tips.provider": {
+      "versions": {
+        "1.0.0": "provideBackgroundTips"
       }
     }
   },
