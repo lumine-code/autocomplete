@@ -259,10 +259,10 @@
     "@eslint/js": "^10.0.1",
     "@lumine-code/fs-plus": "github:lumine-code/fs-plus#e05833b203c67843d40a6bc650224ec0ac412407",
     "@lumine-code/temp": "github:lumine-code/node-temp#bbd9e24a78e835e7421c8acec360731eafa4d3f6",
-    "eslint": "^10.9.1",
+    "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-n": "^18.3.0",
-    "globals": "^17.11.0",
-    "prettier": "^3.9.6"
+    "eslint-plugin-n": "^18.4.0",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9"
   }
 }
