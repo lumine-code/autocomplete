@@ -19,6 +19,10 @@ lumine-overlay.autocomplete {
   z-index: 12; /* higher than docks */
 }
 
+lumine-overlay.autocomplete:has(autocomplete-suggestion-list[data-initializing]) {
+  visibility: hidden;
+}
+
 /* A pointer at the word being completed, drawn twice: the border colour first,
    the background a pixel over it, which is how a bordered box grows a
    triangle. It hangs on the wrapper rather than on the list, because the list
