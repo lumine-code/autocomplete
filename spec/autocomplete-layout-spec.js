@@ -100,6 +100,105 @@ describe("Autocomplete popup layout", () => {
     expect(geometry().width).toBeCloseTo(before.width, 0);
   });
 
+  for (const count of [6, 30]) {
+    it(`keeps a consistent icon gap without labels before and after details resolve (${count} rows)`, async () => {
+      const words = ["page", "Page", "Passenger", "spacing", "prevailing", "accompanying"];
+      const items = Array.from({ length: count }, (_, index) => ({
+        text: words[index] || `buffer_word_${index}`,
+        type: index < 2 ? "variable" : undefined,
+        replacementPrefix: "k",
+      }));
+      const expectGap = (stage) => {
+        for (const index of [0, 1]) {
+          const row = view.ol.childNodes[index];
+          const cell = row.querySelector(".icon-container");
+          const icon = cell.querySelector(".icon").getBoundingClientRect();
+          const word = row.querySelector(".word").getBoundingClientRect();
+          const padding = parseFloat(getComputedStyle(cell).paddingRight);
+          expect(word.left - icon.right)
+            .withContext(`${stage}, row ${index}`)
+            .toBeCloseTo(padding, 0);
+        }
+        const wordPositions = Array.from(
+          view.ol.children,
+          (row) => row.querySelector(".word").getBoundingClientRect().left,
+        );
+        expect(Math.max(...wordPositions) - Math.min(...wordPositions)).toBeLessThan(1);
+      };
+      show(items);
+      await frames();
+      const before = geometry();
+      expectGap("initial");
+
+      list.replaceItem(items[0], { ...items[0], description: "Resolved page documentation." });
+      await frames();
+
+      expectGap("resolved");
+      expect(geometry().word).toBeCloseTo(before.word, 0);
+      expect(geometry().width).toBeCloseTo(before.width, 0);
+    });
+  }
+
+  it("keeps a small icon gap when documentation makes the popup wider than its rows", async () => {
+    const words = [
+      "section",
+      "Section",
+      "sectional",
+      "sections",
+      "EffSectionWidth",
+      "Inspection",
+      "inspection",
+    ];
+    const items = words.map((text, index) => ({
+      text,
+      type: index < 2 ? "variable" : undefined,
+      description: index === 0 ? "LongDocumentationWord".repeat(5) : undefined,
+      replacementPrefix: "k",
+    }));
+    show(items);
+    await frames();
+    expect(geometry().width).toBeGreaterThan(450);
+    view.setSelectedIndex(3);
+    await frames();
+    list.replaceItem(items[0], { ...items[0], description: "Resolved section documentation." });
+    await frames();
+
+    const row = view.ol.firstChild;
+    const cell = row.querySelector(".icon-container");
+    const icon = cell.querySelector(".icon").getBoundingClientRect();
+    const word = row.querySelector(".word").getBoundingClientRect();
+    expect(word.left - icon.right).toBeCloseTo(parseFloat(getComputedStyle(cell).paddingRight), 0);
+  });
+
+  it("drops old label widths when pooled rows reopen with no labels", async () => {
+    show([
+      {
+        text: "old",
+        type: "variable",
+        leftLabel: "Long previous annotation",
+        replacementPrefix: "k",
+      },
+    ]);
+    await frames();
+    list.changeItems(null);
+    list.hide();
+    await frames();
+    show([
+      { text: "section", type: "variable", replacementPrefix: "k" },
+      { text: "Section", type: "variable", replacementPrefix: "k" },
+      { text: "sectional", replacementPrefix: "k" },
+      { text: "sections", replacementPrefix: "k" },
+    ]);
+    await frames();
+
+    const row = view.ol.firstChild;
+    const cell = row.querySelector(".icon-container");
+    const icon = cell.querySelector(".icon").getBoundingClientRect();
+    const word = row.querySelector(".word").getBoundingClientRect();
+    expect(word.left - icon.right).toBeCloseTo(parseFloat(getComputedStyle(cell).paddingRight), 0);
+    expect(row.querySelector(".left-label").clientWidth).toBe(0);
+  });
+
   it("reserves columns for icons and labels that occur only in deferred rows", async () => {
     const items = suggestions().map(({ text, replacementPrefix }) => ({ text, replacementPrefix }));
     items[items.length - 1] = {
