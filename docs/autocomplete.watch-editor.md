@@ -7,7 +7,7 @@ A function that turns autocompletion on for an editor autocomplete would otherwi
 | Version     | `1.0.0`                                                         |
 | Provided by | `provideAutocompleteWatchEditor()` returning the watch function |
 | Consumed by | `consumeAutocompleteWatchEditor(watchEditor)`                   |
-| Owner       | `autocomplete` (bundled)                                        |
+| Owner       | `autocomplete`                                                  |
 
 `autocomplete` watches every editor the workspace opens, under the label `workspace-center`. An editor you construct yourself and place in your own view is not one of those, so it gets no popup until you register it here — and registering it is also where you choose which providers may answer.
 

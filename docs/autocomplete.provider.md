@@ -7,7 +7,7 @@ A source of completion suggestions for the autocomplete popup: which scopes it a
 | Version     | `1.0.0`                                                             |
 | Provided by | `provideAutocomplete()` returning one provider, or an array of them |
 | Consumed by | `consumeAutocomplete(provider)`                                     |
-| Owner       | `autocomplete` (bundled)                                            |
+| Owner       | `autocomplete`                                                      |
 
 To turn a language server into a completion source, register an adapter with `ide-client` instead of implementing this service directly — `ide-client` already provides `autocomplete.provider` on every adapter's behalf.
 
@@ -502,8 +502,8 @@ Pick the value from this ladder, by what the provider _knows_ rather than by how
 | 100   | special case    | answers a different question entirely, and only in a situation nothing else speaks to                   | `spell-check`, which offers corrections only for a word already flagged as misspelled |
 | 5     | live runtime    | inspected an actual running process, so it knows what really exists rather than what the source implies | `jupyter-repl`, completing against the live kernel namespace                          |
 | 4     | domain expert   | authoritative for one language or domain, from knowledge specific to it                                 | `autocomplete-lumine`, `autocomplete-sofistik`, `color-inline`                        |
-| 3     | trigger-gated   | crosses languages, but answers only when a specific syntactic trigger matched                           | `autocomplete-paths`, which fires only once a path prefix is on the line              |
-| 2     | general purpose | broadly useful, always on, no single domain                                                             | `ide-client` (language servers), `autocomplete-snippets`                              |
+| 3     | trigger-gated   | crosses languages, but answers only when a specific syntactic trigger matched                           | `fuzzy-files`, which fires only once a path prefix is on the line                     |
+| 2     | general purpose | broadly useful, always on, no single domain                                                             | `ide-client` (language servers), `snippets`                                           |
 | 0     | fallback        | no knowledge of the language at all                                                                     | the built-in provider, completing words already in the buffer                         |
 
 Two rules keep the ladder honest. **A tier above 2 has to be earned by narrowness, not by ambition** — every provider at 3 or above returns nothing at all in the situations it does not own, so it costs the tiers below it nothing; a provider that answers most requests belongs at 2 however good its answers are. And **being outranked is not being hidden**: a lower block still appears, just further down, so reach for `excludeLowerPriority` only when the other suggestions would be actively wrong.
@@ -536,7 +536,7 @@ let provider = {
 
 ## Teardown
 
-`consumeAutocomplete` returns nothing, so a provider is unregistered by its own optional `dispose()` rather than by a `Disposable` handed back to you. Implement it if your provider holds subscriptions, a worker, or a cache.
+`consumeAutocomplete` returns a disposable aggregate that unregisters the supplied providers when the service connection is removed. A provider's optional `dispose()` releases its subscriptions, workers and caches; calling it also removes its registration. The autocomplete manager disposes registered providers during its own teardown, so a provider must tolerate disposal and later registration while its owning package remains active. Keep resources shared with the package's other features under that package's lifecycle.
 
 ## Versioning
 
