@@ -298,6 +298,12 @@ type ServiceProvider = {
    */
   scopeSelector: string;
   /**
+   * Explicit `false` excludes this provider from the request before scope
+   * matching and ranking. May be a getter; read again on each request so a
+   * runtime provider can become available when its connection is ready.
+   */
+  enabled?: boolean;
+  /**
    * Scope selector for which this provider should be inactive, even if the
    * scope otherwise matches `scopeSelector`. Multiple values can be given
    * separated by commas. Optional.
