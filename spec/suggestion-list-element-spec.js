@@ -304,6 +304,131 @@ describe("Suggestion List Element", () => {
       expect(editorElement.getModel().getText()).toBe("let x = 1");
     });
 
+    it("renders descriptive code blocks through the provider's language-aware renderer", async () => {
+      await lumine.packages.activatePackage("language-python");
+      const signature = "def limit(id: Unknown | None = None) -> Unknown";
+      const renderer = jasmine
+        .createSpy("descriptionCodeBlockRenderer")
+        .and.callFake(async ({ text }) => {
+          const pre = document.createElement("pre");
+          pre.textContent = text;
+          pre.className = "projected-signature";
+          return pre;
+        });
+      suggestionListElement.updateDescription({
+        descriptionMarkdown: `\`\`\`python\n${signature}\n\`\`\`\n\nDocumentation.`,
+        descriptionCodeBlockRenderer: renderer,
+      });
+      await Promise.resolve();
+      expect(renderer.calls.first().args[0]).toEqual({
+        text: signature,
+        language: "python",
+        scopeName: "source.python",
+      });
+      expect(content.querySelector(".projected-signature").textContent).toBe(signature);
+      expect(content.textContent).toContain("Documentation.");
+    });
+
+    it("does not restore an old signature after the selection changes", async () => {
+      let finish;
+      const renderer = () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        });
+      const build = spyOn(lumine.workspace, "buildTextEditor").and.callThrough();
+      suggestionListElement.updateDescription({
+        descriptionMarkdown: "```js\nold()\n```",
+        descriptionCodeBlockRenderer: renderer,
+      });
+      suggestionListElement.updateDescription({ description: "New documentation." });
+      const pre = document.createElement("pre");
+      pre.textContent = "old()";
+      finish(pre);
+      await Promise.resolve();
+      expect(content.textContent).toBe("New documentation.");
+      expect(build).not.toHaveBeenCalled();
+    });
+
+    it("does not create a fallback editor after a pending description is dismissed", async () => {
+      let finish;
+      const renderer = () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        });
+      const build = spyOn(lumine.workspace, "buildTextEditor").and.callThrough();
+      suggestionListElement.updateDescription({
+        descriptionMarkdown: "```js\nold()\n```",
+        descriptionCodeBlockRenderer: renderer,
+      });
+      suggestionListElement.dispose();
+      finish(null);
+      await Promise.resolve();
+      expect(content.childElementCount).toBe(0);
+      expect(build).not.toHaveBeenCalled();
+    });
+
+    it("invalidates pending documentation when the model closes the completion list", async () => {
+      const SuggestionList = require("../lib/suggestion-list");
+      const model = new SuggestionList();
+      model.initialize();
+      suggestionListElement.dispose();
+      suggestionListElement = new SuggestionListElement(model);
+      content = suggestionListElement.descriptionContent;
+      let finish;
+      const build = spyOn(lumine.workspace, "buildTextEditor").and.callThrough();
+      suggestionListElement.updateDescription({
+        descriptionMarkdown: "```js\nold()\n```",
+        descriptionCodeBlockRenderer: () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          }),
+      });
+      model.changeItems(null);
+      finish(null);
+      await Promise.resolve();
+      expect(content.childElementCount).toBe(0);
+      expect(suggestionListElement.descriptionContainer.style.display).toBe("none");
+      expect(build).not.toHaveBeenCalled();
+      model.dispose();
+    });
+
+    it("falls back to the declared grammar when a provider renderer declines or rejects", async () => {
+      for (const renderer of [
+        () => null,
+        async () => {
+          throw new Error("unsupported");
+        },
+      ]) {
+        suggestionListElement.updateDescription({
+          descriptionMarkdown: "```js\nlet x = 1\n```",
+          descriptionCodeBlockRenderer: renderer,
+        });
+        await Promise.resolve();
+        const editor = content.querySelector("lumine-text-editor").getModel();
+        expect(editor.getText()).toBe("let x = 1");
+        suggestionListElement.updateDescription({ description: "plain" });
+        expect(editor.isDestroyed()).toBe(true);
+      }
+    });
+
+    it("rerenders unchanged Markdown when the provider adds a code-block renderer", async () => {
+      const markdown = "```js\nlet x = 1\n```";
+      suggestionListElement.updateDescription({ descriptionMarkdown: markdown });
+      const original = content.querySelector("lumine-text-editor").getModel();
+      const renderer = async ({ text }) => {
+        const pre = document.createElement("pre");
+        pre.textContent = text;
+        return pre;
+      };
+      suggestionListElement.updateDescription({
+        descriptionMarkdown: markdown,
+        descriptionCodeBlockRenderer: renderer,
+      });
+      await Promise.resolve();
+      expect(original.isDestroyed()).toBe(true);
+      expect(content.querySelector("pre").textContent).toBe("let x = 1");
+    });
+
     it("destroys the code block editors of the previous description", () => {
       suggestionListElement.updateDescription({
         descriptionMarkdown: "```js\nlet x = 1\n```",

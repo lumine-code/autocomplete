@@ -248,6 +248,31 @@ describe("Autocomplete popup layout", () => {
     }
   });
 
+  it("uses the editor font throughout a provider-rendered documentation code block", async () => {
+    const items = suggestions(1);
+    items[0].descriptionMarkdown = "```python\ndef section(...) -> Section\n```";
+    items[0].descriptionCodeBlockRenderer = async ({ text }) => {
+      const pre = document.createElement("pre");
+      const code = document.createElement("code");
+      const span = document.createElement("span");
+      span.className = "syntax--source syntax--python";
+      span.textContent = text;
+      code.appendChild(span);
+      pre.appendChild(code);
+      return pre;
+    };
+    show(items);
+    view.element.style.setProperty("--editor-font-size", "18px");
+    view.element.style.setProperty("--editor-font-family", "monospace");
+    await frames();
+    const pre = view.descriptionContent.querySelector("pre");
+    expect(pre).not.toBeNull();
+    expect(getComputedStyle(pre).fontSize).toBe("18px");
+    expect(getComputedStyle(pre.querySelector("code")).fontSize).toBe("18px");
+    expect(getComputedStyle(pre.querySelector("span")).fontSize).toBe("18px");
+    expect(getComputedStyle(pre.querySelector("code")).fontFamily).toBe("monospace");
+  });
+
   it("preserves the embedded code editor when unchanged documentation is measured again", async () => {
     const items = suggestions(2);
     items[0].descriptionMarkdown = "Selected documentation.\n\n```python\nk = 1\n```";

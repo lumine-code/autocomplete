@@ -170,6 +170,12 @@ autocomplete-suggestion-list.select-list.popover-list {
       background: var(--syntax-background-color);
     }
 
+    pre {
+      font-family: var(--editor-font-family);
+      font-size: var(--editor-font-size);
+      line-height: var(--editor-line-height, 1.3);
+    }
+
     code {
       font-family: monospace;
       border-radius: 2px;
@@ -177,6 +183,7 @@ autocomplete-suggestion-list.select-list.popover-list {
     }
 
     pre code {
+      font: inherit;
       background: none;
     }
   }

@@ -256,6 +256,19 @@ type Suggestion =
       descriptionMarkdown?: string;
 
       /**
+       * Optionally renders a Markdown code fence containing a descriptive
+       * signature rather than valid source. Return a fresh element with no
+       * resources needing disposal, or null for the normal grammar renderer.
+       * Failed callbacks fall back too; stale results after selection changes
+       * or dismissal are discarded.
+       */
+      descriptionCodeBlockRenderer?(block: {
+        text: string;
+        language: string | undefined;
+        scopeName: string;
+      }): HTMLElement | null | Promise<HTMLElement | null>;
+
+      /**
        * A url to the documentation or more information about this suggestion. When
        * specified, a `More…` link will be displayed in the description area.
        */
