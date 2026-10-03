@@ -8,7 +8,7 @@ const {
   waitForDeferredSuggestions,
   buildIMECompositionEvent,
 } = require("./spec-helper");
-let temp = require("@lumine-code/temp").track();
+let temp = require("@lumine-code/fs-temp").track();
 const path = require("path");
 const SNIPPETS_PATH = path.join(__dirname, "..", "..", "snippets");
 
