@@ -1403,16 +1403,10 @@ describe("Autocomplete Manager integration", () => {
 
         editor.backspace();
         editor.backspace();
-        await waitForAutocomplete(editor);
-
-        expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 14]));
+        await waitForAutocompleteToDisappear(editor);
 
         editor.backspace();
-        await waitForAutocomplete(editor);
-
-        // TODO: For some reason, this disagrees by one pixel — 166 vs 165.
-        // Tried to chase it down and couldn't quite. I'll dig deeper next time.
-        // expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 12]))
+        expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.insertText(" ");
         editor.insertText("a");
@@ -1420,6 +1414,7 @@ describe("Autocomplete Manager integration", () => {
         editor.insertText("c");
         await waitForAutocomplete(editor);
 
+        overlayElement = editorView.querySelector(".autocomplete");
         expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 14]));
       });
 
@@ -1445,10 +1440,7 @@ describe("Autocomplete Manager integration", () => {
         editor.backspace();
         editor.backspace();
         editor.backspace();
-        await waitForAutocomplete(editor);
-
-        // TODO: See comment above.
-        // expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 12]))
+        await waitForAutocompleteToDisappear(editor);
       });
     });
 
