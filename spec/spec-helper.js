@@ -38,11 +38,11 @@ async function waitForDeferredSuggestions(editorView, totalSuggestions) {
     ".autocomplete autocomplete-suggestion-list .suggestion-list-scroller",
   );
   scroller.scrollTo(0, 100);
-  scroller.scrollTo(0, 0);
 
   await conditionPromise(
     () => editorView.querySelectorAll(".autocomplete li").length === totalSuggestions,
   );
+  scroller.scrollTo(0, 0);
 }
 
 let buildIMECompositionEvent = (event, { data, target } = {}) => {

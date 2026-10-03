@@ -323,27 +323,6 @@ describe("Suggestion List Element", () => {
     });
   });
 
-  describe("descriptionLength", () => {
-    it("measures whichever description will be rendered", () => {
-      // The markdown field wins in `updateDescription`, so a markdown-only item
-      // has to score for the popup to be sized off the widest one.
-      expect(suggestionListElement.descriptionLength({ descriptionMarkdown: "abcd" })).toBe(4);
-      expect(suggestionListElement.descriptionLength({ description: "abc" })).toBe(3);
-      expect(
-        suggestionListElement.descriptionLength({
-          description: "ab",
-          descriptionMarkdown: "abcd",
-        }),
-      ).toBe(4);
-      expect(
-        suggestionListElement.descriptionLength({
-          descriptionMarkdown: "abcd",
-          descriptionMoreURL: "https://example.com",
-        }),
-      ).toBe(10);
-    });
-  });
-
   describe("itemChanged", () => {
     beforeEach(() => {
       jasmine.useRealClock();

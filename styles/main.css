@@ -97,12 +97,13 @@ lumine-overlay.autocomplete[data-overlay-position="above"]:has(
 }
 
 autocomplete-suggestion-list.select-list.popover-list {
-  width: auto !important; /* TODO: Can be removed once the inline style is gone */
+  width: auto;
   display: inline-block;
   /* A floor wide enough that a short suggestion still leaves room for its
      right label, so the popup does not snap between widths as the list is
      filtered. Nothing pins this value; widen it if the labels crowd. */
   min-width: 320px;
+  max-width: calc(100vw - 2 * var(--autocomplete-item-side-padding));
   padding: 0;
   /* Room for the pointer above and below, whichever side the popup lands on.
      The editor reads these margins when it decides whether it still fits. */
@@ -228,6 +229,20 @@ autocomplete-suggestion-list.select-list.popover-list {
       }
     }
   }
+
+  .sizing-row {
+    visibility: collapse;
+
+    .sizing-label,
+    .sizing-word {
+      width: max-content;
+      max-width: inherit;
+    }
+
+    .sizing-label {
+      display: block;
+    }
+  }
 }
 
 autocomplete-suggestion-list {
@@ -298,13 +313,19 @@ autocomplete-suggestion-list {
     padding-right: var(--autocomplete-item-padding);
   }
 
+  .word-content {
+    display: flex;
+    align-items: center;
+  }
+
   .word {
-    float: left;
+    min-width: 0;
   }
 
   /* The label detail reads as a dimmed continuation of the word. */
   .word-detail {
-    float: left;
+    min-width: 0;
+    flex-shrink: 2;
     padding-left: 0.4em;
     font-size: var(--autocomplete-font-size-small);
     color: var(--text-color-subtle);
