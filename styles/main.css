@@ -19,7 +19,10 @@ lumine-overlay.autocomplete {
   z-index: 12; /* higher than docks */
 }
 
-lumine-overlay.autocomplete:has(autocomplete-suggestion-list[data-initializing]) {
+lumine-overlay.autocomplete:has(
+    autocomplete-suggestion-list[data-initializing],
+    autocomplete-suggestion-list[data-render-pending]
+  ) {
   visibility: hidden;
 }
 

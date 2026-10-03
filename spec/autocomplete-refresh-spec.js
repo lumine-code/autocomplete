@@ -292,6 +292,28 @@ describe("Autocomplete documentation during refresh", () => {
       }
     });
 
+    it("fits a newly mounted popup after a cold horizontal pixel cache forces an early editor update", async () => {
+      await placeCaret();
+      const getSuggestions = provider.getSuggestions;
+      provider.getSuggestions = (options) =>
+        getSuggestions(options).map((item) => ({ ...item, descriptionMarkdown: documentation }));
+      const list = manager.suggestionList;
+      const showList = list.show;
+      spyOn(list, "show").and.callFake((...args) => {
+        editorView.getComponent().horizontalPixelPositionsByScreenLineId.clear();
+        return showList(...args);
+      });
+      const sampling = samplePresentation();
+      try {
+        await beginTyping();
+        await frames(8);
+        expectFinalPosition(sampling.entries);
+        expect(view.element.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
+      } finally {
+        sampling.stop();
+      }
+    });
+
     it("does not paint a below-cursor popup before quick documentation moves it above", async () => {
       await placeCaret();
       const sampling = samplePresentation();
