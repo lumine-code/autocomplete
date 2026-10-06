@@ -9,7 +9,7 @@ A source of completion suggestions for the autocomplete popup: which scopes it a
 | Consumed by | `consumeAutocomplete(provider)`                                     |
 | Owner       | `autocomplete`                                                      |
 
-To turn a language server into a completion source, register an adapter with `ide-client` instead of implementing this service directly — `ide-client` already provides `autocomplete.provider` on every adapter's behalf.
+To turn a language server into a completion source, register an adapter with `ide` instead of implementing this service directly — `ide` already provides `autocomplete.provider` on every adapter's behalf.
 
 ## Contract
 
@@ -503,7 +503,7 @@ Pick the value from this ladder, by what the provider _knows_ rather than by how
 | 5     | live runtime    | inspected an actual running process, so it knows what really exists rather than what the source implies | `jupyter-repl`, completing against the live kernel namespace                          |
 | 4     | domain expert   | authoritative for one language or domain, from knowledge specific to it                                 | `autocomplete-lumine`, `autocomplete-sofistik`, `color-inline`                        |
 | 3     | trigger-gated   | crosses languages, but answers only when a specific syntactic trigger matched                           | `fuzzy-files`, which fires only once a path prefix is on the line                     |
-| 2     | general purpose | broadly useful, always on, no single domain                                                             | `ide-client` (language servers), `snippets`                                           |
+| 2     | general purpose | broadly useful, always on, no single domain                                                             | `ide` (language servers), `snippets`                                                  |
 | 0     | fallback        | no knowledge of the language at all                                                                     | the built-in provider, completing words already in the buffer                         |
 
 Two rules keep the ladder honest. **A tier above 2 has to be earned by narrowness, not by ambition** — every provider at 3 or above returns nothing at all in the situations it does not own, so it costs the tiers below it nothing; a provider that answers most requests belongs at 2 however good its answers are. And **being outranked is not being hidden**: a lower block still appears, just further down, so reach for `excludeLowerPriority` only when the other suggestions would be actively wrong.
