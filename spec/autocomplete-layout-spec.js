@@ -199,6 +199,41 @@ describe("Autocomplete popup layout", () => {
     expect(row.querySelector(".left-label").clientWidth).toBe(0);
   });
 
+  for (const count of [6, 30]) {
+    it(`measures labels added after opening and after reopening (${count} rows)`, async () => {
+      const items = suggestions(count).map(({ text, type, replacementPrefix }) => ({
+        text,
+        type,
+        replacementPrefix,
+      }));
+      show(items);
+      await frames();
+      const resolved = { ...items[0], leftLabel: "Resolved variable type" };
+      list.replaceItem(items[0], resolved);
+      await frames();
+
+      const label = view.ol.firstChild.querySelector(".left-label");
+      expect(label.clientWidth).toBeGreaterThan(60);
+      const labelWidth = label.clientWidth;
+      const measured = geometry();
+      expect(
+        view.ol.firstChild.querySelector(".word").getBoundingClientRect().left,
+      ).toBeGreaterThanOrEqual(label.getBoundingClientRect().right);
+
+      list.hide();
+      await frames();
+      show([resolved, ...items.slice(1)]);
+      await frames();
+
+      expect(view.ol.firstChild.querySelector(".left-label").clientWidth).toBeCloseTo(
+        labelWidth,
+        0,
+      );
+      expect(geometry().width).toBeCloseTo(measured.width, 0);
+      expect(geometry().word).toBeCloseTo(measured.word, 0);
+    });
+  }
+
   it("reserves columns for icons and labels that occur only in deferred rows", async () => {
     const items = suggestions().map(({ text, replacementPrefix }) => ({ text, replacementPrefix }));
     items[items.length - 1] = {
