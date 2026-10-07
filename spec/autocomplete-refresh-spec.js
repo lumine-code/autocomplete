@@ -235,6 +235,65 @@ describe("Autocomplete documentation during refresh", () => {
     expect(view.descriptionContent.textContent).not.toContain("Unit documentation.");
   });
 
+  describe("between selected suggestions", () => {
+    beforeEach(() => {
+      itemCount = 3;
+      const getSuggestions = provider.getSuggestions;
+      provider.getSuggestions = (options) =>
+        getSuggestions(options).map((item, index) => {
+          const text = ["kN", "kPa", "kJ"][index];
+          return { ...item, text, textEdit: { ...item.textEdit, newText: text } };
+        });
+    });
+
+    it("replaces quickly resolved documentation without a collapsed browser frame", async () => {
+      await openDocumentedList({ descriptionMoreURL: "https://example.com/first" });
+      const codeElement = view.descriptionContent.querySelector("lumine-text-editor");
+      const codeEditor = codeElement.getModel();
+      const beforeHeight = view.element.getBoundingClientRect().height;
+      const samples = [];
+      let frame;
+      const sample = () => {
+        samples.push({
+          visible: view.descriptionContainer.style.display,
+          height: view.element.getBoundingClientRect().height,
+        });
+        frame = requestAnimationFrame(sample);
+      };
+      frame = requestAnimationFrame(sample);
+      const openExternal = spyOn(lumine.shell, "openExternal").and.resolveTo();
+      try {
+        view.setSelectedIndex(1);
+        await frames(2);
+        expect(view.selectedIndex).toBe(1);
+        expect(view.descriptionContent.querySelector("lumine-text-editor")).toBe(codeElement);
+        expect(codeEditor.isDestroyed()).toBe(false);
+        lumine.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
+        expect(openExternal).not.toHaveBeenCalled();
+
+        await finishDetails(1, {
+          descriptionMarkdown: documentation.replace(
+            "Unit documentation.",
+            "Second unit documentation.",
+          ),
+          descriptionMoreURL: "https://example.com/second",
+        });
+
+        expect(samples.length).toBeGreaterThan(1);
+        for (const entry of samples) {
+          expect(entry.visible).toBe("block");
+          expect(entry.height).toBeCloseTo(beforeHeight, 0);
+        }
+        expect(view.descriptionContent.textContent).toContain("Second unit documentation.");
+        expect(codeEditor.isDestroyed()).toBe(true);
+        lumine.commands.dispatch(editorView, "autocomplete:navigate-to-description-more-link");
+        expect(openExternal).toHaveBeenCalledOnceWith("https://example.com/second");
+      } finally {
+        cancelAnimationFrame(frame);
+      }
+    });
+  });
+
   describe("first presentation near the bottom of the window", () => {
     const placeCaret = async () => {
       const lineHeight = editorView.getComponent().getLineHeight();
