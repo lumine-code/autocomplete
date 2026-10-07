@@ -376,86 +376,115 @@ autocomplete-suggestion-list {
     text-overflow: ellipsis;
   }
 
-  /* Type icons (expanded from the Less `.make-type-icon()` mixin). */
+  /* Type glyphs use the syntax palette. Tint that same syntax surface so the
+     badge keeps its foreground/background pair when the UI theme changes. */
   .icon.attribute {
     color: var(--syntax-color-attribute);
-    background: rgb(from var(--syntax-color-attribute) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-attribute) 20%,
+      var(--syntax-background-color)
+    );
   }
   .icon.builtin {
     color: var(--syntax-color-keyword);
-    background: rgb(from var(--syntax-color-keyword) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-keyword) 20%, var(--syntax-background-color));
   }
   .icon.class {
     color: var(--syntax-color-class);
-    background: rgb(from var(--syntax-color-class) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-class) 20%, var(--syntax-background-color));
   }
   .icon.constant {
     color: var(--syntax-color-constant);
-    background: rgb(from var(--syntax-color-constant) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-constant) 20%,
+      var(--syntax-background-color)
+    );
   }
   .icon.function {
     color: var(--syntax-color-function);
-    background: rgb(from var(--syntax-color-function) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-function) 20%,
+      var(--syntax-background-color)
+    );
   }
   .icon.import {
     color: var(--syntax-color-import);
-    background: rgb(from var(--syntax-color-import) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-import) 20%, var(--syntax-background-color));
   }
   .icon.keyword {
     color: var(--syntax-color-keyword);
-    background: rgb(from var(--syntax-color-keyword) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-keyword) 20%, var(--syntax-background-color));
   }
   .icon.method {
     color: var(--syntax-color-method);
-    background: rgb(from var(--syntax-color-method) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-method) 20%, var(--syntax-background-color));
   }
   .icon.module {
     color: var(--syntax-color-import);
-    background: rgb(from var(--syntax-color-import) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-import) 20%, var(--syntax-background-color));
   }
   .icon.mixin {
     color: var(--syntax-color-class);
-    background: rgb(from var(--syntax-color-class) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-class) 20%, var(--syntax-background-color));
   }
   .icon.package {
     color: var(--syntax-color-import);
-    background: rgb(from var(--syntax-color-import) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-import) 20%, var(--syntax-background-color));
   }
   .icon.property {
     color: var(--syntax-color-property);
-    background: rgb(from var(--syntax-color-property) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-property) 20%,
+      var(--syntax-background-color)
+    );
   }
   .icon.require {
     color: var(--syntax-color-import);
-    background: rgb(from var(--syntax-color-import) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-import) 20%, var(--syntax-background-color));
   }
   .icon.snippet {
     color: var(--syntax-color-snippet);
-    background: rgb(from var(--syntax-color-snippet) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-snippet) 20%, var(--syntax-background-color));
   }
   .icon.tag {
     color: var(--syntax-color-tag);
-    background: rgb(from var(--syntax-color-tag) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-tag) 20%, var(--syntax-background-color));
   }
   .icon.type {
     color: var(--syntax-color-class);
-    background: rgb(from var(--syntax-color-class) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-class) 20%, var(--syntax-background-color));
   }
   .icon.value {
     color: var(--syntax-color-value);
-    background: rgb(from var(--syntax-color-value) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-value) 20%, var(--syntax-background-color));
   }
   .icon.variable {
     color: var(--syntax-color-variable);
-    background: rgb(from var(--syntax-color-variable) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-variable) 20%,
+      var(--syntax-background-color)
+    );
   }
   .icon.selector {
     color: var(--syntax-color-attribute);
-    background: rgb(from var(--syntax-color-attribute) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-attribute) 20%,
+      var(--syntax-background-color)
+    );
   }
   .icon.pseudo-selector {
     color: var(--syntax-color-attribute);
-    background: rgb(from var(--syntax-color-attribute) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-attribute) 20%,
+      var(--syntax-background-color)
+    );
   }
 
   /* The rest of the LSP 3.17 completion kinds, which language servers emit
@@ -469,95 +498,58 @@ autocomplete-suggestion-list {
   .icon.enum,
   .icon.type-parameter {
     color: var(--syntax-color-class);
-    background: rgb(from var(--syntax-color-class) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-class) 20%, var(--syntax-background-color));
   }
   /* A constructor is the callable half of a class. */
   .icon.constructor {
     color: var(--syntax-color-method);
-    background: rgb(from var(--syntax-color-method) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-method) 20%, var(--syntax-background-color));
   }
   /* Members reached through an instance. */
   .icon.field,
   .icon.event {
     color: var(--syntax-color-property);
-    background: rgb(from var(--syntax-color-property) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-property) 20%,
+      var(--syntax-background-color)
+    );
   }
   /* A named member of an enum is a constant like any other. */
   .icon.enum-member {
     color: var(--syntax-color-constant);
-    background: rgb(from var(--syntax-color-constant) r g b / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-constant) 20%,
+      var(--syntax-background-color)
+    );
   }
   /* Literals: a CSS length, a color swatch. */
   .icon.unit,
   .icon.color {
     color: var(--syntax-color-value);
-    background: rgb(from var(--syntax-color-value) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-value) 20%, var(--syntax-background-color));
   }
   /* Things brought in from elsewhere, like the import family above. */
   .icon.file,
   .icon.folder,
   .icon.reference {
     color: var(--syntax-color-import);
-    background: rgb(from var(--syntax-color-import) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-import) 20%, var(--syntax-background-color));
   }
   /* An operator is language syntax, so it reads as a keyword. */
   .icon.operator {
     color: var(--syntax-color-keyword);
-    background: rgb(from var(--syntax-color-keyword) r g b / calc(alpha - 0.8));
+    background: color-mix(in srgb, var(--syntax-color-keyword) 20%, var(--syntax-background-color));
   }
   /* A bare word with no symbol behind it — a buffer word, or a server with
      nothing better to say. */
   .icon.text {
     color: var(--syntax-color-variable);
-    background: rgb(from var(--syntax-color-variable) r g b / calc(alpha - 0.8));
-  }
-}
-
-/* Low-contrast correction (converted from the guarded `.make-type-icon()`
-   mixin). The Less guard fired when the HSV value of the type color was
-   within 20 points of @overlay-background-color's HSV value; the correction
-   then pushed the color 30% away from the overlay background
-   (`contrast(@overlay-background-color, darken(@color, 30%), lighten(@color, 30%))`).
-
-   Evaluated against the bundled palettes:
-   - one-night (overlay #252830, HSV value 18.8): every type color has an HSV
-     value of 75+ — the guard is false for all types, so no overrides.
-   - one-day (overlay #f2f2f2, HSV value 94.9): true for the class (79.6),
-     function/method (94.8), tag (89.3) and variable (89.3) colors — mapped to
-     the icon types class/mixin/type/interface/struct/enum/type-parameter,
-     function, method/constructor, tag and variable/text — and false for the
-     attribute/selector/event (71.6), keyword/builtin/operator (65.2),
-     constant/enum-member (71.6), import/module/package/require/file/folder/
-     reference (65.2), property/field (25.9), snippet (63.0) and
-     value/unit/color (25.9) colors. The light overlay picks the darkened
-     variant. */
-:where(.theme-one-day-ui) autocomplete-suggestion-list {
-  .icon.class,
-  .icon.mixin,
-  .icon.type,
-  .icon.interface,
-  .icon.struct,
-  .icon.enum,
-  .icon.type-parameter {
-    color: hsl(from var(--syntax-color-class) h s calc(l - 30));
-    background: hsl(from var(--syntax-color-class) h s calc(l - 30) / calc(alpha - 0.8));
-  }
-  .icon.function {
-    color: hsl(from var(--syntax-color-function) h s calc(l - 30));
-    background: hsl(from var(--syntax-color-function) h s calc(l - 30) / calc(alpha - 0.8));
-  }
-  .icon.method,
-  .icon.constructor {
-    color: hsl(from var(--syntax-color-method) h s calc(l - 30));
-    background: hsl(from var(--syntax-color-method) h s calc(l - 30) / calc(alpha - 0.8));
-  }
-  .icon.tag {
-    color: hsl(from var(--syntax-color-tag) h s calc(l - 30));
-    background: hsl(from var(--syntax-color-tag) h s calc(l - 30) / calc(alpha - 0.8));
-  }
-  .icon.variable,
-  .icon.text {
-    color: hsl(from var(--syntax-color-variable) h s calc(l - 30));
-    background: hsl(from var(--syntax-color-variable) h s calc(l - 30) / calc(alpha - 0.8));
+    background: color-mix(
+      in srgb,
+      var(--syntax-color-variable) 20%,
+      var(--syntax-background-color)
+    );
   }
 }
