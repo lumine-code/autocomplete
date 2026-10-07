@@ -80,6 +80,55 @@ describe("Autocomplete popup layout", () => {
     expect(view.ol.lastChild.offsetHeight).toBe(view.ol.firstChild.offsetHeight);
   });
 
+  it("reserves the capped scroll range before deferred rows render", async () => {
+    lumine.config.set("autocomplete.maxSuggestions", 120);
+    show(suggestions(250));
+    await frames();
+    const rowHeight = view.ol.firstChild.offsetHeight;
+    const initialHeight = view.scroller.scrollHeight;
+    const viewportHeight = view.scroller.clientHeight;
+    expect(view.ol.children.length).toBe(11);
+    expect(initialHeight).toBeCloseTo(120 * rowHeight, 0);
+
+    view.scroller.scrollTop = rowHeight;
+    await frames(8);
+
+    expect(view.ol.children.length).toBe(120);
+    expect(view.scroller.scrollHeight).toBe(initialHeight);
+    expect(view.scroller.clientHeight).toBe(viewportHeight);
+    expect(view.scroller.scrollTop).toBe(rowHeight);
+  });
+
+  it("reaches the last suggestion on the first scrollbar drag to the bottom", async () => {
+    show(suggestions(200));
+    await frames();
+    expect(view.ol.children.length).toBe(11);
+    const target = 200 * view.ol.firstChild.offsetHeight - view.scroller.clientHeight;
+    view.scroller.scrollTop = view.scroller.scrollHeight - view.scroller.clientHeight;
+    await frames(4);
+
+    expect(view.scroller.scrollTop).toBe(target);
+    expect(view.ol.lastChild.querySelector(".word").textContent).toBe("keyword199");
+    const viewport = view.scroller.getBoundingClientRect();
+    const last = view.ol.lastChild.getBoundingClientRect();
+    expect(last.bottom).toBeCloseTo(viewport.bottom, 0);
+  });
+
+  it("preserves the scroll range with fractional row heights", async () => {
+    show(suggestions(120));
+    view.element.style.fontSize = "15.25px";
+    await frames();
+    const rowHeight = view.ol.firstChild.getBoundingClientRect().height;
+    const initialHeight = view.scroller.scrollHeight;
+    expect(initialHeight).toBe(Math.round(120 * rowHeight));
+    expect(rowHeight % 1).not.toBe(0);
+    view.scroller.scrollTop = 50;
+    await frames(8);
+
+    expect(view.scroller.scrollHeight).toBe(initialHeight);
+    expect(view.scroller.scrollTop).toBe(50);
+  });
+
   it("does not render deferred completion rows when only documentation is scrolled", async () => {
     const items = suggestions();
     items[0].descriptionMarkdown = Array.from(

@@ -236,6 +236,139 @@ describe("Suggestion List Element", () => {
       expect(suggestionListElement.extraItemsFrame).toBeNull();
       expect(suggestionListElement.extraItems.length).toBe(1);
     });
+
+    describe("scroll range", () => {
+      beforeEach(() => {
+        // Keep these checks independent of which package activated its styles
+        // earlier in the suite. The browser still measures the actual rows.
+        suggestionListElement.scroller.style.overflowY = "auto";
+        suggestionListElement.ol.style.margin = "0";
+        suggestionListElement.ol.style.padding = "0";
+        // Core's generic popover list scrolls its ol at 200px. Autocomplete's
+        // table leaves scrolling to its outer scroller instead.
+        suggestionListElement.ol.style.maxHeight = "none";
+        suggestionListElement.ol.style.overflow = "visible";
+      });
+
+      const expectedHeight = (count) => {
+        const rowHeight = suggestionListElement.ol.firstChild.offsetHeight;
+        expect(rowHeight).toBeGreaterThan(0);
+        return count * rowHeight;
+      };
+
+      it("reaches the capped last item with End without extending the scroll range", () => {
+        suggestionListElement.maxItems = 7;
+        suggestionListElement.model = modelWith(120);
+        suggestionListElement.render();
+        const height = expectedHeight(7);
+        expect(suggestionListElement.scroller.scrollHeight).toBe(height);
+
+        suggestionListElement.moveSelectionToBottom();
+
+        expect(suggestionListElement.selectedLi.dataset.index).toBe("6");
+        expect(suggestionListElement.selectedLi.classList.contains("selected")).toBe(true);
+        expect(suggestionListElement.getSelectedItem()).toBe(suggestionListElement.model.items[6]);
+        expect(suggestionListElement.scroller.scrollHeight).toBe(height);
+        expect(suggestionListElement.scroller.scrollTop).toBe(
+          height - suggestionListElement.scroller.clientHeight,
+        );
+      });
+
+      it("keeps page navigation and Home usable while the tail is deferred", () => {
+        suggestionListElement.model = modelWith(120);
+        suggestionListElement.render();
+        const height = expectedHeight(120);
+
+        suggestionListElement.moveSelectionPageDown();
+        suggestionListElement.moveSelectionPageDown();
+
+        expect(suggestionListElement.selectedLi.dataset.index).toBe("4");
+        expect(suggestionListElement.selectedLi.classList.contains("selected")).toBe(true);
+        expect(suggestionListElement.scroller.scrollHeight).toBe(height);
+        expect(suggestionListElement.scroller.scrollTop).toBeGreaterThan(0);
+
+        suggestionListElement.moveSelectionPageUp();
+        expect(suggestionListElement.selectedLi.dataset.index).toBe("2");
+        suggestionListElement.moveSelectionToTop();
+        expect(suggestionListElement.selectedLi.dataset.index).toBe("0");
+        expect(suggestionListElement.scroller.scrollTop).toBe(0);
+        expect(suggestionListElement.scroller.scrollHeight).toBe(height);
+      });
+
+      it("replaces the previous scroll range when a pending list becomes shorter", () => {
+        suggestionListElement.model = modelWith(120);
+        suggestionListElement.render();
+        suggestionListElement.moveSelectionPageDown();
+        suggestionListElement.moveSelectionPageDown();
+        expect(suggestionListElement.extraItemsFrame).not.toBeNull();
+        expect(suggestionListElement.scroller.scrollTop).toBeGreaterThan(0);
+
+        suggestionListElement.model = modelWith(4);
+        suggestionListElement.render();
+
+        expect(suggestionListElement.extraItemsFrame).toBeNull();
+        expect(suggestionListElement.scroller.scrollTop).toBe(0);
+        expect(suggestionListElement.scroller.scrollHeight).toBe(expectedHeight(4));
+        expect(suggestionListElement.ol.children.length).toBe(3);
+      });
+
+      it("keeps a replacement list deferred after repeated rendering requests in one frame", async () => {
+        jasmine.useRealClock();
+        suggestionListElement.model = modelWith(120);
+        suggestionListElement.render();
+        suggestionListElement.scroller.scrollTop = suggestionListElement.ol.firstChild.offsetHeight;
+        // Both requests arrive before the browser runs the next frame, as can
+        // happen when scrolling and changing selection together.
+        suggestionListElement.renderExtraItems();
+        suggestionListElement.renderExtraItems();
+
+        const replacement = modelWith(40);
+        replacement.items = replacement.items.map((item) => ({ text: `new_${item.text}` }));
+        suggestionListElement.model = replacement;
+        suggestionListElement.render();
+        for (let frame = 0; frame < 4; frame++) await new Promise(requestAnimationFrame);
+
+        expect(suggestionListElement.ol.children.length).toBe(3);
+        expect(
+          Array.from(
+            suggestionListElement.ol.children,
+            (row) => row.querySelector(".word").textContent,
+          ),
+        ).toEqual(["new_item0", "new_item1", "new_item2"]);
+        expect(suggestionListElement.scroller.scrollTop).toBe(0);
+        expect(suggestionListElement.scroller.scrollHeight).toBe(expectedHeight(40));
+      });
+
+      it("removes the previous scroll range when the list becomes empty", () => {
+        suggestionListElement.model = modelWith(120);
+        suggestionListElement.render();
+        suggestionListElement.renderExtraItems();
+        expect(suggestionListElement.extraItemsFrame).not.toBeNull();
+
+        suggestionListElement.model.items = [];
+        suggestionListElement.itemsChanged();
+
+        expect(suggestionListElement.extraItemsFrame).toBeNull();
+        expect(suggestionListElement.ol.children.length).toBe(0);
+        expect(suggestionListElement.scroller.scrollHeight).toBe(0);
+        expect(suggestionListElement.scroller.scrollTop).toBe(0);
+      });
+
+      it("does not leave a scrollbar after refreshing to a list that fits", () => {
+        suggestionListElement.model = modelWith(120);
+        suggestionListElement.render();
+
+        suggestionListElement.model = modelWith(2);
+        suggestionListElement.render();
+
+        expect(suggestionListElement.scroller.scrollHeight).toBe(expectedHeight(2));
+        expect(suggestionListElement.scroller.scrollHeight).toBe(
+          suggestionListElement.scroller.clientHeight,
+        );
+        expect(suggestionListElement.scroller.scrollTop).toBe(0);
+        expect(suggestionListElement.ol.children.length).toBe(2);
+      });
+    });
   });
 
   describe("updateDescription", () => {
