@@ -45,11 +45,11 @@ describe("Autocomplete documentation during selection", () => {
     model = null;
   });
 
-  it("keeps the previous documentation for at most 150 ms while selected details are pending", () => {
+  it("keeps the previous documentation for at most 50 ms while selected details are pending", () => {
     view.setSelectedIndex(1);
     expectPendingDescription();
     expect(view.descriptionMoreLink.getAttribute("href")).toBe(moreURL);
-    advanceClock(149);
+    advanceClock(49);
     expectPendingDescription();
     advanceClock(1);
     expectEmptyDescription();
@@ -57,7 +57,7 @@ describe("Autocomplete documentation during selection", () => {
 
   it("replaces held documentation as soon as the selected details arrive", () => {
     view.setSelectedIndex(1);
-    advanceClock(50);
+    advanceClock(20);
     model.replaceItem(second, {
       ...second,
       description: "Documentation for the second completion.",
@@ -87,13 +87,13 @@ describe("Autocomplete documentation during selection", () => {
 
   it("keeps the latest selection's grace period through rapid movement and an earlier resolve", () => {
     view.setSelectedIndex(1);
-    advanceClock(100);
+    advanceClock(30);
     view.setSelectedIndex(2);
-    advanceClock(50);
+    advanceClock(20);
     expectPendingDescription();
     model.replaceItem(second, { ...second, description: "Late second documentation." });
     expectPendingDescription();
-    advanceClock(99);
+    advanceClock(29);
     expectPendingDescription();
     advanceClock(1);
     expectEmptyDescription();
@@ -101,7 +101,7 @@ describe("Autocomplete documentation during selection", () => {
 
   it("does not overwrite the latest resolved description with an earlier response or timer", () => {
     view.setSelectedIndex(1);
-    advanceClock(50);
+    advanceClock(20);
     view.setSelectedIndex(2);
     model.replaceItem(third, { ...third, description: "Third documentation." });
     model.replaceItem(second, { ...second, description: "Late second documentation." });
@@ -127,7 +127,7 @@ describe("Autocomplete documentation during selection", () => {
 
   it("restores an already documented selection and cancels the intervening timer", () => {
     view.setSelectedIndex(1);
-    advanceClock(50);
+    advanceClock(20);
     view.setSelectedIndex(0);
 
     expect(view.descriptionContent.textContent).toBe(description);
@@ -186,7 +186,7 @@ describe("Autocomplete documentation during selection", () => {
     view.setSelectedIndex(1);
     const writes = [];
     lumine.views.updateDocument.and.callFake((callback) => writes.push(callback));
-    advanceClock(150);
+    advanceClock(50);
     expect(writes.length).toBeGreaterThan(0);
     lumine.views.updateDocument.and.callFake(runDocumentUpdate);
     view.setSelectedIndex(0);
@@ -223,7 +223,7 @@ describe("Autocomplete documentation during selection", () => {
     view.setSelectedIndex(1);
     const writes = [];
     lumine.views.updateDocument.and.callFake((callback) => writes.push(callback));
-    advanceClock(150);
+    advanceClock(50);
     lumine.views.updateDocument.and.callFake(runDocumentUpdate);
     model.dispose();
     model = null;
@@ -246,7 +246,7 @@ describe("Autocomplete documentation during selection", () => {
       const codeElement = view.descriptionContent.querySelector("lumine-text-editor");
       const codeEditor = codeElement.getModel();
       view.setSelectedIndex(1);
-      advanceClock(149);
+      advanceClock(49);
 
       expect(view.descriptionContent.querySelector("lumine-text-editor")).toBe(codeElement);
       expect(codeEditor.isDestroyed()).toBe(false);

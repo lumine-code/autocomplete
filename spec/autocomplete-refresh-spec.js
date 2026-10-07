@@ -264,7 +264,7 @@ describe("Autocomplete documentation during refresh", () => {
       const openExternal = spyOn(lumine.shell, "openExternal").and.resolveTo();
       try {
         view.setSelectedIndex(1);
-        await frames(2);
+        await frames(1);
         expect(view.selectedIndex).toBe(1);
         expect(view.descriptionContent.querySelector("lumine-text-editor")).toBe(codeElement);
         expect(codeEditor.isDestroyed()).toBe(false);
