@@ -2,6 +2,8 @@
 
 Display possible completions while you type.
 
+Fork of [pulsar-edit/pulsar](https://github.com/pulsar-edit/pulsar) (`packages/autocomplete-plus`).
+
 ## Features
 
 - **Inline suggestions**: shows a suggestion list as you type, with a configurable activation delay.
