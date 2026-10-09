@@ -209,7 +209,7 @@ type Suggestion =
        * original insertion strategy.
        *
        */
-      additionalTextEdits?: TextEdit;
+      additionalTextEdits?: TextEdit[];
 
       /**
        * A label to display before the suggestion. This can indicate useful
