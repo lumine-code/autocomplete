@@ -1,6 +1,6 @@
 const path = require("path");
 
-describe("completion type badge theme ownership", () => {
+describe("completion theme ownership", () => {
   let stylesheet;
   let host;
   let icon;
@@ -58,5 +58,26 @@ describe("completion type badge theme ownership", () => {
     const recolored = backgroundPixel();
     host.style.setProperty("--syntax-background-color", "rgb(200,210,220)");
     expect(backgroundPixel()).not.toEqual(recolored);
+  });
+
+  it("uses the documentation overlay color independently of the suggestion list and code", () => {
+    host.style.cssText =
+      "--overlay-background-color: rgb(250,250,250); --overlay-documentation-background-color: rgb(210,220,230); --syntax-background-color: rgb(10,20,30);";
+    const list = host.querySelector("autocomplete-suggestion-list");
+    const description = document.createElement("div");
+    description.className = "suggestion-description";
+    description.innerHTML =
+      '<div class="suggestion-description-content markdown-description"><pre>example</pre></div>';
+    list.appendChild(description);
+    const code = description.querySelector("pre");
+
+    expect(getComputedStyle(list).backgroundColor).toBe("rgb(250, 250, 250)");
+    expect(getComputedStyle(description).backgroundColor).toBe("rgb(210, 220, 230)");
+    expect(getComputedStyle(code).backgroundColor).toBe("rgb(10, 20, 30)");
+
+    host.style.setProperty("--overlay-documentation-background-color", "rgb(90,100,110)");
+    expect(getComputedStyle(description).backgroundColor).toBe("rgb(90, 100, 110)");
+    expect(getComputedStyle(list).backgroundColor).toBe("rgb(250, 250, 250)");
+    expect(getComputedStyle(code).backgroundColor).toBe("rgb(10, 20, 30)");
   });
 });
