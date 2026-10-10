@@ -62,6 +62,10 @@ jobs:
         shell: bash
     env:
       LUMINE_JASMINE_REPORTER: list
+      LUMINE_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: "true"
+      TEMP: ${{ github.workspace }}/autocomplete-spec-tmp
+      TMP: ${{ github.workspace }}/autocomplete-spec-tmp
+      TMPDIR: ${{ github.workspace }}/autocomplete-spec-tmp
     steps:
       - uses: actions/checkout@v7
         with:
@@ -75,6 +79,8 @@ jobs:
           node-version-file: lumine/.nvmrc
           cache: npm
           cache-dependency-path: lumine/package-lock.json
+      - name: Create the private temporary directory
+        run: mkdir -p "$TEMP"
       - name: Install Linux build and headless-display dependencies
         if: runner.os == 'Linux'
         run: |
@@ -111,10 +117,6 @@ jobs:
         working-directory: lumine
         timeout-minutes: 20
         run: |
-          export TEMP="$RUNNER_TEMP/autocomplete-temp"
-          export TMP="$TEMP"
-          export TMPDIR="$TEMP"
-          mkdir -p "$TEMP"
           if [ "$RUNNER_OS" = Linux ]; then
             xvfb-run --auto-servernum npm start -- --test ../autocomplete/spec
           else
