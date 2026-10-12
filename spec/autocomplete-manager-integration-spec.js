@@ -126,8 +126,14 @@ describe("Autocomplete Manager integration", () => {
     });
 
     it("works after closing one of the copied tabs", async () => {
-      lumine.workspace.paneForItem(editor).splitRight({ copyActiveItem: true });
-      lumine.workspace.getActivePane().destroy();
+      const copied = await lumine.workspace.copyPaneItem(editor, {
+        sourcePane: lumine.workspace.paneForItem(editor),
+        splitDirection: "right",
+      });
+      copied.pane.destroy();
+      expect(editor.isDestroyed()).toBe(false);
+      lumine.workspace.paneForItem(editor).activate();
+      editorView.focus();
 
       editor.insertNewline();
       editor.insertText("f");
@@ -183,10 +189,12 @@ describe("Autocomplete Manager integration", () => {
     });
 
     it("only shows for the editor that currently has focus", async () => {
-      let editor2 = lumine.workspace
-        .paneForItem(editor)
-        .splitRight({ copyActiveItem: true })
-        .getActiveItem();
+      let editor2 = (
+        await lumine.workspace.copyPaneItem(lumine.workspace.paneForItem(editor).getActiveItem(), {
+          sourcePane: lumine.workspace.paneForItem(editor),
+          splitDirection: "right",
+        })
+      ).pane.getActiveItem();
       let editorView2 = lumine.views.getView(editor2);
       editorView.focus();
 
