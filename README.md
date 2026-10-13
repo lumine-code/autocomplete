@@ -13,6 +13,8 @@ Fork of [pulsar-edit/pulsar](https://github.com/pulsar-edit/pulsar) (`packages/a
 - **Fuzzy or strict matching**: match suggestions loosely with smart scoring or require an exact prefix.
 - **Filtering controls**: skip suggestions for blacklisted files, scopes, and editor classes.
 
+![Complete a partially typed symbol from the current buffer.](.github/demo.png)
+
 ## Installation
 
 To install `autocomplete` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/autocomplete`.

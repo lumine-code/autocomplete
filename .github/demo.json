@@ -1,0 +1,16 @@
+{
+  "title": "autocomplete",
+  "description": "Complete a partially typed symbol from the current buffer.",
+  "recordedOn": "2026-10-13",
+  "sourceRevision": "d220ffba25d2b7d64092433938cd83cf8a9def5a",
+  "mode": "normal",
+  "fontSettings": "default",
+  "images": [
+    {
+      "file": "demo.png",
+      "label": "Complete a partially typed symbol from the current buffer.",
+      "width": 1100,
+      "height": 730
+    }
+  ]
+}
