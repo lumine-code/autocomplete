@@ -30,6 +30,10 @@ Commands available in `lumine-text-editor.autocomplete-active`:
 - `autocomplete:confirm`: insert the selected suggestion,
 - `autocomplete:confirm-if-non-default`: insert the suggestion only if it is not the default selection.
 
+## Usage
+
+See the [Autocomplete guide](docs/usage.md) for providers, matching, confirmation, documentation and snippets.
+
 ## Services
 
 - [`autocomplete.watch-editor`](docs/autocomplete.watch-editor.md): provided to let other packages register an editor to be watched for autocompletion along with the set of providers to use for it.
