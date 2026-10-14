@@ -1,16 +1,71 @@
 {
   "title": "autocomplete",
   "description": "Complete a partially typed symbol from the current buffer.",
-  "recordedOn": "2026-10-13",
-  "sourceRevision": "d220ffba25d2b7d64092433938cd83cf8a9def5a",
+  "recordedOn": "2026-10-14",
+  "sourceRevision": "6c09c061f8693eafa65d9e6077c8cb5c09e12ac2",
+  "themeSourceRevision": "7fbd047a87ecf1367c896b19ff270cdc28d319f7",
   "mode": "normal",
   "fontSettings": "default",
+  "scenario": "demo.js",
+  "recipeHash": "88a80093358dd4a884850bf3d1f225526b2ea5e0ed4224e3370d6ad4e53399d1",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "electron": "44.7.0",
+    "chrome": "152.0.7977.130",
+    "devicePixelRatio": 1,
+    "locale": "en-GB",
+    "fontFamily": "Fira Code, Menlo, DejaVu Sans Mono, Consolas, monospace",
+    "fontSize": 14,
+    "themes": ["one-day-syntax", "one-day-ui"]
+  },
+  "viewport": { "width": 1100, "height": 730 },
+  "cornerRadius": 10,
+  "sources": {
+    "editor": {
+      "revision": "8be8f86075ad93df038610d82b3ac6d99329957d",
+      "dirty": true,
+      "workingTreeHash": "0a9458f6e3959fe7a52b2fec76abef27dcbaa9792f192b81ac1e3f6b2be82009"
+    },
+    "package": {
+      "revision": "6c09c061f8693eafa65d9e6077c8cb5c09e12ac2",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "autocomplete": {
+      "revision": "6c09c061f8693eafa65d9e6077c8cb5c09e12ac2",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "language-javascript": {
+      "revision": "ae2e6968e3a349fb4d09ce53e339a0f8cce903aa",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "one-theme": {
+      "revision": "7fbd047a87ecf1367c896b19ff270cdc28d319f7",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "snippets": {
+      "revision": "742aa5a15e6c14cf02466a672358dd2112493d97",
+      "dirty": true,
+      "workingTreeHash": "f210149f1bac84223813a625f82095e772e6a906ee6aa3044410d5c96cf4a91d"
+    }
+  },
+  "fixtures": [
+    {
+      "file": "editing/signal.js",
+      "sha256": "82cc62e48e87ea9f912f4b107e6f5a142ddce118db51fe08d2b7ca477036bbef"
+    }
+  ],
   "images": [
     {
       "file": "demo.png",
       "label": "Complete a partially typed symbol from the current buffer.",
       "width": 1100,
-      "height": 730
+      "height": 730,
+      "sha256": "a3c9e225874393fddca5f9320f6b8c627acb59a727fb1d24a91889dbcf2deff7"
     }
   ]
 }
