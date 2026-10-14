@@ -429,8 +429,18 @@ describe("Autocomplete documentation during refresh", () => {
     it("does not reveal a new selection through the previous selection's queued resolve", async () => {
       await placeCaret();
       itemCount = 2;
+      const initialRequest = new Promise((resolve) => {
+        const getDetails = provider.getSuggestionDetailsOnSelect;
+        provider.getSuggestionDetailsOnSelect = (suggestion) => {
+          const pending = getDetails.call(provider, suggestion);
+          resolve();
+          return pending;
+        };
+      });
       await beginTyping();
-      await frames(1);
+      // Selection is published by the list's document update, which may land
+      // after the first animation frame on a busy Windows runner.
+      await initialRequest;
       const request = details[0];
       const pending = manager.pendingDetails.get(request.suggestion);
       request.resolve({ ...request.suggestion, descriptionMarkdown: documentation });

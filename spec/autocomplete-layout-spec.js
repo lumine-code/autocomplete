@@ -53,6 +53,30 @@ describe("Autocomplete popup layout", () => {
     await frames(2);
   });
 
+  it("keeps a selection made before the popup's first measurement", async () => {
+    const reads = [];
+    const readDocument = spyOn(lumine.views, "readDocument").and.callFake((callback) =>
+      reads.push(callback),
+    );
+    try {
+      show(suggestions(2));
+      await frames(2);
+      expect(view.uiProps).toBeUndefined();
+      view.setSelectedIndex(1);
+      expect(() => view.renderSelectedItem()).not.toThrow();
+      expect(view.selectedLi.textContent).toContain("keyword1");
+
+      readDocument.and.callThrough();
+      for (const read of reads) read();
+      await frames();
+      expect(view.uiProps.itemHeight).toBeGreaterThan(0);
+      expect(view.selectedIndex).toBe(1);
+      expect(view.selectedLi).toBe(view.ol.children[1]);
+    } finally {
+      readDocument.and.callThrough();
+    }
+  });
+
   it("keeps the popup and word column in place when wider deferred rows are rendered", async () => {
     const items = suggestions();
     items[items.length - 1].text = "keyword_with_a_much_longer_name_than_the_visible_rows";
