@@ -18,7 +18,7 @@ let suggestionsForPrefix = async (provider, editor, prefix, options) => {
 };
 
 describe("SubsequenceProvider", () => {
-  let [editor, mainModule, autocompleteManager, provider] = [];
+  let [editor, mainModule, provider] = [];
 
   beforeEach(async () => {
     lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
@@ -44,9 +44,13 @@ describe("SubsequenceProvider", () => {
     await conditionPromise(
       () => mainModule.autocompleteManager && mainModule.autocompleteManager.ready,
     );
-    autocompleteManager = mainModule.autocompleteManager;
-    provider = autocompleteManager.providerManager.defaultProvider;
+    // This suite exercises the buffer-search implementation. The manager's
+    // built-in provider is a lazy service facade, covered by integration specs.
+    const SubsequenceProvider = require("../lib/subsequence-provider");
+    provider = new SubsequenceProvider();
   });
+
+  afterEach(() => provider?.dispose());
 
   it("runs a completion ", async () => {
     const suggestions = await suggestionsForPrefix(provider, editor, "quick");
