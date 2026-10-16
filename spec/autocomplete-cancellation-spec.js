@@ -125,6 +125,26 @@ describe("Autocomplete cancellation", () => {
     expect(manager.suggestionList.items.map((item) => item.text)).toEqual(["about"]);
   });
 
+  it("opens the first manual request immediately after the cursor moves", async () => {
+    editor.setText("good thiss");
+    editor.setCursorBufferPosition([0, 0]);
+    manager.cancelSuggestions();
+    editor.setCursorBufferPosition([0, 7]);
+    expect(manager.hideTimeout).not.toBeNull();
+
+    lumine.commands.dispatch(editorView, "autocomplete:activate");
+    requests[0].completion = latestCompletion();
+    expect(requests[0].options.bufferPosition.toArray()).toEqual([0, 7]);
+    expect(requests[0].options.activatedManually).toBe(true);
+    advanceClock(1);
+    await resolveRequest(0, "this");
+
+    expect(manager.suggestionList.activeEditor).toBe(editor);
+    expect(manager.suggestionList.isActive()).toBe(true);
+    expect(manager.suggestionList.items.map((item) => item.text)).toEqual(["this"]);
+    expect(editor.getText()).toBe("good thiss");
+  });
+
   it("keeps another editor's pending request and popup when the old editor is cancelled", async () => {
     const oldEditorView = editorView;
     otherEditor = await lumine.workspace.open("");
