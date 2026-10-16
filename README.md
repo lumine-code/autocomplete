@@ -23,11 +23,14 @@ To install `autocomplete` search for it in the Install pane of the Lumine settin
 
 Commands available in `lumine-text-editor`:
 
-- `autocomplete:activate`: manually show the suggestion list for the current word,
 - `autocomplete:cancel`: dismiss the suggestion list and cancel pending suggestions,
 - `autocomplete:navigate-to-description-more-link`: open the "more" link of the selected suggestion's description externally.
 
-Commands available in `lumine-text-editor.autocomplete-active`:
+Commands available in `lumine-text-editor:not([readonly])` for editors watched by Autocomplete:
+
+- `autocomplete:activate`: manually show the suggestion list for the current word.
+
+Commands available in `lumine-text-editor.autocomplete-active:not([readonly])`:
 
 - `autocomplete:confirm`: insert the selected suggestion,
 - `autocomplete:confirm-if-non-default`: insert the suggestion only if it is not the default selection.
