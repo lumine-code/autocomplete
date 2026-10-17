@@ -235,7 +235,7 @@ autocomplete-suggestion-list.select-list.popover-list {
 
       &.selected {
         .word {
-          color: rgb(from var(--text-color-selected) r g b / calc(alpha - 0.2));
+          color: var(--text-color-selected);
         }
         /* Matched characters keep the shared select-list highlight color on
            the selected row. */
@@ -243,7 +243,7 @@ autocomplete-suggestion-list.select-list.popover-list {
         .left-label,
         .right-label,
         .snippet-completion {
-          color: rgb(from var(--text-color-selected) r g b / calc(alpha - 0.5));
+          color: var(--text-color-selected);
         }
       }
     }

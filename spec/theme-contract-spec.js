@@ -20,6 +20,16 @@ describe("completion theme ownership", () => {
     stylesheet.dispose();
   });
 
+  it("keeps every selected completion label on the opaque selection foreground", () => {
+    host.style.setProperty("--text-color-selected", "rgb(20, 40, 60)");
+    const row = host.querySelector("li");
+    row.classList.add("selected");
+    row.innerHTML = ["word", "word-detail", "left-label", "right-label", "snippet-completion"]
+      .map((name) => `<span class="${name}">Label</span>`)
+      .join("");
+    for (const label of row.children) expect(getComputedStyle(label).color).toBe("rgb(20, 40, 60)");
+  });
+
   function backgroundPixel() {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 1;
