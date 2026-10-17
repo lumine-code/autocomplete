@@ -1,9 +1,9 @@
 {
   "title": "autocomplete",
   "description": "Complete a partially typed symbol from the current buffer.",
-  "recordedOn": "2026-10-14",
-  "sourceRevision": "6c09c061f8693eafa65d9e6077c8cb5c09e12ac2",
-  "themeSourceRevision": "7fbd047a87ecf1367c896b19ff270cdc28d319f7",
+  "recordedOn": "2026-10-17",
+  "sourceRevision": "063e97b683d5660629836cba2ea40d49fdd6c9d1",
+  "themeSourceRevision": "80e8864a2e9a891ef1f911d78ab8f03fb3911f58",
   "mode": "normal",
   "fontSettings": "default",
   "scenario": "demo.js",
@@ -11,8 +11,8 @@
   "environment": {
     "platform": "win32",
     "arch": "x64",
-    "electron": "44.7.0",
-    "chrome": "152.0.7977.130",
+    "electron": "44.9.0",
+    "chrome": "152.0.7977.167",
     "devicePixelRatio": 1,
     "locale": "en-GB",
     "fontFamily": "Fira Code, Menlo, DejaVu Sans Mono, Consolas, monospace",
@@ -21,36 +21,37 @@
   },
   "viewport": { "width": 1100, "height": 730 },
   "cornerRadius": 10,
+  "privacy": { "version": 1, "location": "neutral", "textChecked": true },
   "sources": {
     "editor": {
-      "revision": "8be8f86075ad93df038610d82b3ac6d99329957d",
-      "dirty": true,
-      "workingTreeHash": "0a9458f6e3959fe7a52b2fec76abef27dcbaa9792f192b81ac1e3f6b2be82009"
+      "revision": "200598247a0ae40f5e0bf1998b44f7fe77bc0aa7",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
     },
     "package": {
-      "revision": "6c09c061f8693eafa65d9e6077c8cb5c09e12ac2",
+      "revision": "063e97b683d5660629836cba2ea40d49fdd6c9d1",
       "dirty": false,
       "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
     },
     "autocomplete": {
-      "revision": "6c09c061f8693eafa65d9e6077c8cb5c09e12ac2",
+      "revision": "063e97b683d5660629836cba2ea40d49fdd6c9d1",
       "dirty": false,
       "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
     },
     "language-javascript": {
-      "revision": "ae2e6968e3a349fb4d09ce53e339a0f8cce903aa",
+      "revision": "043d75bfaa5bef24edeb5cc36f5c9ec396d01497",
       "dirty": false,
       "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
     },
     "one-theme": {
-      "revision": "7fbd047a87ecf1367c896b19ff270cdc28d319f7",
+      "revision": "80e8864a2e9a891ef1f911d78ab8f03fb3911f58",
       "dirty": false,
       "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
     },
     "snippets": {
-      "revision": "742aa5a15e6c14cf02466a672358dd2112493d97",
-      "dirty": true,
-      "workingTreeHash": "f210149f1bac84223813a625f82095e772e6a906ee6aa3044410d5c96cf4a91d"
+      "revision": "1e65b903f9222ca09256f0d47bd966def2f01f17",
+      "dirty": false,
+      "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
     }
   },
   "fixtures": [
@@ -65,7 +66,7 @@
       "label": "Complete a partially typed symbol from the current buffer.",
       "width": 1100,
       "height": 730,
-      "sha256": "a3c9e225874393fddca5f9320f6b8c627acb59a727fb1d24a91889dbcf2deff7"
+      "sha256": "24cb22d1deb834be6885a3e61cbcc39d2b9ad2104e30668843493bf27febdfc5"
     }
   ]
 }
