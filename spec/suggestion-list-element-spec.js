@@ -614,12 +614,12 @@ describe("Suggestion List Element", () => {
       let snippet = undefined;
       let displayText = "acd";
       let replacementPrefix = "a";
-      let html = suggestionListElement.getDisplayFragment(
+      let html = suggestionListElement.getDisplayFragment({
         text,
         snippet,
         displayText,
         replacementPrefix,
-      );
+      });
       expect(fragmentToHtml(html)).toBe('<span class="character-match">a</span>cd');
     });
 
@@ -627,7 +627,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = undefined;
       let replacementPrefix = "a";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe("");
     });
 
@@ -635,7 +635,7 @@ describe("Suggestion List Element", () => {
       let text = undefined;
       let snippet = "";
       let replacementPrefix = "a";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe("");
     });
 
@@ -643,7 +643,7 @@ describe("Suggestion List Element", () => {
       let text = undefined;
       let snippet = "abc";
       let replacementPrefix = "";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe("abc");
     });
 
@@ -651,7 +651,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = "abc(d, e)f";
       let replacementPrefix = "a";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe('<span class="character-match">a</span>bc(d, e)f');
     });
 
@@ -659,7 +659,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = "abc(d, e)f";
       let replacementPrefix = "omg";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe("abc(d, e)f");
     });
 
@@ -667,7 +667,7 @@ describe("Suggestion List Element", () => {
       let text = "abc(d, e)f";
       let snippet = undefined;
       let replacementPrefix = "a";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe('<span class="character-match">a</span>bc(d, e)f');
     });
 
@@ -675,7 +675,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = "abc(${1:d}, ${2:e})f";
       let replacementPrefix = "a";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe(
         '<span class="character-match">a</span>bc(<span class="snippet-completion">d</span>, <span class="snippet-completion">e</span>)f',
       );
@@ -685,7 +685,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = "text(${1:ab}, ${2:cd})";
       let replacementPrefix = "ta";
-      let html = suggestionListElement.getDisplayFragment(text, snippet, null, replacementPrefix);
+      let html = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(html)).toBe(
         '<span class="character-match">t</span>ext(<span class="snippet-completion"><span class="character-match">a</span>b</span>, <span class="snippet-completion">cd</span>)',
       );
@@ -695,12 +695,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = "abc(${1:d}, ${2:e})f ${3:interface{\\}}";
       let replacementPrefix = "a";
-      let display = suggestionListElement.getDisplayFragment(
-        text,
-        snippet,
-        null,
-        replacementPrefix,
-      );
+      let display = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(display)).toBe(
         '<span class="character-match">a</span>bc(<span class="snippet-completion">d</span>, <span class="snippet-completion">e</span>)f <span class="snippet-completion">interface{}</span>',
       );
@@ -710,12 +705,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = "abc(${1:d}, ${2:something{ok\\}}, ${3:e})f ${4:interface{\\}}";
       let replacementPrefix = "a";
-      let display = suggestionListElement.getDisplayFragment(
-        text,
-        snippet,
-        null,
-        replacementPrefix,
-      );
+      let display = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(display)).toBe(
         '<span class="character-match">a</span>bc(<span class="snippet-completion">d</span>, <span class="snippet-completion">something{ok}</span>, <span class="snippet-completion">e</span>)f <span class="snippet-completion">interface{}</span>',
       );
@@ -725,12 +715,7 @@ describe("Suggestion List Element", () => {
       let text = "";
       let snippet = "abc(${1:d}, ${2:e})f${3}";
       let replacementPrefix = "a";
-      let display = suggestionListElement.getDisplayFragment(
-        text,
-        snippet,
-        null,
-        replacementPrefix,
-      );
+      let display = suggestionListElement.getDisplayFragment({ text, snippet, replacementPrefix });
       expect(fragmentToHtml(display)).toBe(
         '<span class="character-match">a</span>bc(<span class="snippet-completion">d</span>, <span class="snippet-completion">e</span>)f',
       );
@@ -742,7 +727,11 @@ describe("Suggestion List Element", () => {
       text = suggestionListElement.removeEmptySnippets(text);
       let snippets = suggestionListElement.snippetParser.findSnippets(text);
       text = suggestionListElement.removeSnippetsFromText(snippets, text);
-      let matches = suggestionListElement.findCharacterMatchIndices(text, replacementPrefix);
+      let matches = require("../lib/completion-matches").characterMatches(
+        { text },
+        text,
+        replacementPrefix,
+      );
       matches = new Set(matches);
 
       for (var i = 0; i <= text.length; i++) {

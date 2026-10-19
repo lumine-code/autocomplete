@@ -57,6 +57,28 @@ describe("SubsequenceProvider", () => {
     expect(suggestions).toContain("quicksort");
   });
 
+  it("uses absolute source coordinates when the search window starts far from row zero", async () => {
+    const lines = Array(8000).fill("");
+    lines[6999] = "targetWord";
+    editor.setText(lines.join("\n"));
+    editor.setCursorBufferPosition([7000, 0]);
+    await editor.whenGrammarSettled();
+    const scope = spyOn(editor, "scopeDescriptorForBufferPosition").and.callThrough();
+    expect(await suggestionsForPrefix(provider, editor, "taw")).toContain("targetWord");
+    expect(
+      scope.calls.allArgs().some(([position]) => position.row === 6999 && position.column === 0),
+    ).toBe(true);
+  });
+
+  it("releases owned buffer observers and discards pending results on disposal", async () => {
+    const subscription = provider.bufferSubscriptions.get(editor.getBuffer());
+    const pending = suggestionsForPrefix(provider, editor, "quick");
+    provider.dispose();
+    expect(subscription.disposed).toBe(true);
+    expect(provider.watchedBuffers.size).toBe(0);
+    expect(await pending).toEqual([]);
+  });
+
   it("adds words to the symbol list after they have been written", async () => {
     let suggestions = await suggestionsForPrefix(provider, editor, "anew");
     expect(suggestions).not.toContain("aNewFunction");

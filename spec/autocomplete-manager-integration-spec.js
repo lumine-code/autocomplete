@@ -1149,7 +1149,7 @@ describe("Autocomplete Manager integration", () => {
             expect(charMatch.parentNode).toHaveClass("snippet-completion");
           });
 
-          it("does not highlight the snippet html when highlight beginning of the word", async () => {
+          it("highlights visible snippet characters using the shared word-boundary score", async () => {
             spyOn(provider, "getSuggestions").and.callFake(() => [
               { snippet: "abcde(${1:e}, ${1:f})f" },
             ]);
@@ -1169,7 +1169,9 @@ describe("Autocomplete Manager integration", () => {
             expect(charMatches[0].textContent).toBe("c");
             expect(charMatches[0].parentNode).toHaveClass("word");
             expect(charMatches[1].textContent).toBe("e");
-            expect(charMatches[1].parentNode).toHaveClass("word");
+            // The visible placeholder starts a subword, so its e wins over
+            // the inner e in abcde. No placeholder syntax is matched.
+            expect(charMatches[1].parentNode).toHaveClass("snippet-completion");
             expect(charMatches[2].textContent).toBe("f");
             expect(charMatches[2].parentNode).toHaveClass("snippet-completion");
           });

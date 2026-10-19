@@ -433,8 +433,10 @@ describe("Provider API", () => {
         expect(getSuggestions()).toEqual([
           { text: "::cats" },
           { text: "hai" },
-          { text: "ohai" },
+          // The shared completion scorer prefers the word-start match in
+          // "something" over the inner-letter match in "ohai".
           { text: "something" },
+          { text: "ohai" },
         ]);
       });
 

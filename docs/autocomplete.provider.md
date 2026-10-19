@@ -385,6 +385,12 @@ type ServiceProvider = {
      */
     prefix: string;
     /**
+     * Aborted when a newer request replaces this one, the popup is cancelled,
+     * the editor changes, or autocomplete is disposed. Providers may pass it
+     * to cancellable work. An obsolete result is never ranked or displayed.
+     */
+    signal: AbortSignal;
+    /**
      * Whether the user activated this menu manually or had it appear
      * automatically while typing.
      */
@@ -494,6 +500,10 @@ module.exports = {
 ## Ranking
 
 **Each provider's suggestions are a block, and `suggestionPriority` alone decides where that block sits.** Providers are sorted by `suggestionPriority` descending — `scopeSelector` specificity breaks a tie, and nothing else enters into it — and each provider's results are then concatenated in that order. Scoring happens strictly _inside_ a block: a provider that sets `filterSuggestions` has its own items ranked by how well they match what was typed, but that ranking never crosses a block boundary. So an exact match from a low-priority provider still sits below a loose one from a high-priority provider, and a provider that leaves `suggestionPriority` unset takes the default of 1 and lands beneath every general-purpose provider in the ecosystem — including in the language it is the expert on.
+
+Completion filtering uses the same JavaScript scoring kernel as buffer-word completion. Whole-word matches take priority over literal prefixes, case-insensitive prefixes and other subsequences, in that order; `sortText`, match score and original order break ties within a tier. This deliberately replaces the previous general-purpose path matcher, so some subsequence ordering and highlight paths differ. Queries longer than 256 UTF-16 units yield no filtered matches.
+
+Autocomplete owns cached match results, including lazy UTF-16 highlight indices. Providers may reuse suggestion objects: changes to `replacementPrefix`, `filterText` or displayed text invalidate the corresponding cache. `filterText` controls ranking while highlights always address the displayed label, including rendered snippet text. Explicit `characterMatchIndices` remain provider-owned and must address that label for the current request. There is no need to compute them just to avoid repeated matching during rendering.
 
 Pick the value from this ladder, by what the provider _knows_ rather than by how much you want to see it:
 
