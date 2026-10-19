@@ -114,4 +114,16 @@ describe("Completion match ownership", () => {
     expect(suggestion.replacementPrefix).toBe("ab");
     expect(owner.displaySuggestions).toHaveBeenCalledTimes(1);
   });
+
+  it("uses the scoring normalization for prefix tiers and first-character restrictions", () => {
+    const runtime = require("../lib/completion-runtime");
+    lumine.config.set("autocomplete.firstCharacterMustMatch", true);
+    const items = [{ text: "ΟΣΑ" }, { text: "Σ" }];
+    expect(runtime.filterSuggestions(items, { prefix: "ς" }).map((item) => item.text)).toEqual([
+      "Σ",
+    ]);
+    expect(
+      runtime.filterSuggestions([{ text: "ΟΣΑ" }, { text: "ΟΣ" }], { prefix: "ος" })[0].text,
+    ).toBe("ΟΣ");
+  });
 });
