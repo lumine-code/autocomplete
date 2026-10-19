@@ -9,6 +9,9 @@ describe("Completion match ownership", () => {
     spyOn(lumine.tools.fuzzyMatcher, "setCandidates").and.throwError("Native ranking match");
     const item = { text: "hello" };
     const prepared = matches.matchSuggestion(item, "hlo");
+    spyOn(lumine.tools.completionMatcher, "createQuery").and.throwError(
+      "Prepared match was rescored",
+    );
     expect(matches.characterMatches(item, "hello", "hlo")).toBe(prepared.matchIndices);
     expect(matches.characterMatches(item, "hello", "hlo")).toBe(prepared.matchIndices);
   });
@@ -83,5 +86,32 @@ describe("Completion match ownership", () => {
     expect(signal.aborted).toBe(true);
     expect(owner.filterSuggestions).not.toHaveBeenCalled();
     expect(owner.displaySuggestions).not.toHaveBeenCalled();
+  });
+
+  it("does not let a late response overwrite the prefix of a reused current suggestion", async () => {
+    const runtime = require("../lib/completion-runtime");
+    const suggestion = { text: "abc" };
+    let release;
+    const pending = new Promise((resolve) => (release = resolve));
+    const provider = {
+      getSuggestions: (options) => (options.prefix === "a" ? pending : [suggestion]),
+    };
+    const owner = {
+      editor: {},
+      editorLabels: [],
+      providerManager: { applicableProviders: () => [provider] },
+      displaySuggestions: jasmine.createSpy("current presentation"),
+      mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
+    };
+    const oldRequest = runtime.getSuggestionsFromProviders.call(owner, {
+      editor: owner.editor,
+      prefix: "a",
+    });
+    await runtime.getSuggestionsFromProviders.call(owner, { editor: owner.editor, prefix: "ab" });
+    expect(suggestion.replacementPrefix).toBe("ab");
+    release([suggestion]);
+    await oldRequest;
+    expect(suggestion.replacementPrefix).toBe("ab");
+    expect(owner.displaySuggestions).toHaveBeenCalledTimes(1);
   });
 });
