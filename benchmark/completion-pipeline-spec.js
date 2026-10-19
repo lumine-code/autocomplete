@@ -69,13 +69,40 @@ describe("Completion pipeline performance", () => {
           element.component.updateSync();
           nativeRank.calls.reset();
           nativeHighlight.calls.reset();
+          const expectedCount = scenario.words ? 5 : scenario.count;
+          let itemSubscription;
+          const itemsReady = new Promise((resolve) => {
+            itemSubscription = manager.suggestionList.onDidChangeItems((items) => {
+              if (items?.length === expectedCount) resolve();
+            });
+          });
+          let observer, checkReady, timeout;
+          const domReady = new Promise((resolve, reject) => {
+            checkReady = () => {
+              const first = element.querySelector(".autocomplete li .word");
+              if (
+                manager.suggestionList.items?.length === expectedCount &&
+                first?.textContent === manager.suggestionList.items[0].text &&
+                first.querySelector(".character-match")
+              )
+                resolve();
+            };
+            observer = new MutationObserver(checkReady);
+            observer.observe(element, { subtree: true, childList: true });
+            timeout = setTimeout(() => reject(new Error("Popup DOM readiness timed out")), 10000);
+          });
           const start = performance.now();
-          lumine.commands.dispatch(element, "autocomplete:activate");
-          await until(
-            () => manager.suggestionList.items?.length === (scenario.words ? 5 : scenario.count),
-          );
-          element.component.updateSync();
-          await until(() => element.querySelector(".autocomplete .character-match"));
+          try {
+            lumine.commands.dispatch(element, "autocomplete:activate");
+            await Promise.race([itemsReady, domReady]);
+            element.component.updateSync();
+            checkReady();
+            await domReady;
+          } finally {
+            itemSubscription.dispose();
+            observer.disconnect();
+            clearTimeout(timeout);
+          }
           const complete = performance.now() - start;
           await new Promise((resolve) =>
             requestAnimationFrame(() => requestAnimationFrame(resolve)),
