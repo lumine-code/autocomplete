@@ -42,6 +42,9 @@ describe("the autocomplete manager bootstrap", () => {
               "./completion-matches",
               "./get-additional-word-characters",
               "./unicode-helpers",
+              "./snippet-parser",
+              "./suggestion-list-element",
+              "./suggestion-list-runtime",
             ].includes(request)
           )
             return require(request.replace("./", "../lib/"));
