@@ -385,9 +385,11 @@ type ServiceProvider = {
      */
     prefix: string;
     /**
-     * Aborted when a newer request replaces this one, the popup is cancelled,
+     * While the request is pending, aborted when a newer request replaces it, the popup is cancelled,
      * the editor changes, or autocomplete is disposed. Providers may pass it
      * to cancellable work. An obsolete result is never ranked or displayed.
+     * After providers and popup publication finish, cancellation ownership
+     * ends. Later actions must not rely on this signal being aborted.
      */
     signal: AbortSignal;
     /**

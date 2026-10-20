@@ -88,6 +88,120 @@ describe("Completion match ownership", () => {
     expect(owner.displaySuggestions).not.toHaveBeenCalled();
   });
 
+  it("releases completed requests without cancelling them on the next request", async () => {
+    const runtime = require("../lib/completion-runtime");
+    const signals = [];
+    const owner = {
+      editor: {},
+      editorLabels: [],
+      providerManager: {
+        applicableProviders: () => [
+          {
+            getSuggestions({ signal }) {
+              signals.push(signal);
+              return [{ text: "abc" }];
+            },
+          },
+        ],
+      },
+      displaySuggestions: () => {},
+      mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
+    };
+    for (const prefix of ["a", "ab", "abc"]) {
+      await runtime.getSuggestionsFromProviders.call(owner, { editor: owner.editor, prefix });
+      expect(owner.suggestionAbortController).toBeNull();
+    }
+    expect(signals.every((signal) => !signal.aborted)).toBeTrue();
+    owner.providerManager.applicableProviders = () => [];
+    expect(runtime.getSuggestionsFromProviders.call(owner, {})).toBeUndefined();
+    expect(owner.suggestionAbortController).toBeNull();
+  });
+
+  it("keeps publication cancellable without releasing a newer request's controller", async () => {
+    const runtime = require("../lib/completion-runtime");
+    let publish, publishing, answer;
+    const visible = new Promise((resolve) => {
+      publishing = resolve;
+    });
+    const pendingAnswer = new Promise((resolve) => {
+      answer = resolve;
+    });
+    const owner = {
+      editor: {},
+      providerManager: {
+        applicableProviders: () => [
+          {
+            getSuggestions: ({ prefix }) => (prefix === "a" ? [{ text: "abc" }] : pendingAnswer),
+          },
+        ],
+      },
+      mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
+      displaySuggestions: (_, { prefix }) =>
+        prefix === "a"
+          ? new Promise((resolve) => {
+              publish = resolve;
+              publishing();
+            })
+          : undefined,
+    };
+    const first = runtime.getSuggestionsFromProviders.call(owner, {
+      editor: owner.editor,
+      prefix: "a",
+    });
+    await visible;
+    const firstController = owner.suggestionAbortController;
+    const second = runtime.getSuggestionsFromProviders.call(owner, {
+      editor: owner.editor,
+      prefix: "ab",
+    });
+    const secondController = owner.suggestionAbortController;
+    expect(firstController.signal.aborted).toBeTrue();
+    publish();
+    await first;
+    expect(owner.suggestionAbortController).toBe(secondController);
+    expect(secondController.signal.aborted).toBeFalse();
+    answer([{ text: "abc" }]);
+    await second;
+    expect(owner.suggestionAbortController).toBeNull();
+  });
+
+  for (const synchronous of [true, false]) {
+    it(`cancels siblings and releases a ${synchronous ? "throwing" : "rejecting"} request`, async () => {
+      const runtime = require("../lib/completion-runtime");
+      let siblingSignal;
+      const error = new Error("provider failed");
+      const owner = {
+        editor: {},
+        providerManager: {
+          applicableProviders: () => [
+            {
+              getSuggestions() {
+                if (synchronous) throw error;
+                return Promise.reject(error);
+              },
+            },
+            {
+              getSuggestions({ signal }) {
+                siblingSignal = signal;
+                return new Promise((resolve) =>
+                  signal.addEventListener("abort", () => resolve([]), { once: true }),
+                );
+              },
+            },
+          ],
+        },
+        mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
+        displaySuggestions: jasmine.createSpy("failed publication"),
+      };
+      await expectAsync(
+        runtime.getSuggestionsFromProviders.call(owner, { editor: owner.editor, prefix: "a" }),
+      ).toBeRejectedWith(error);
+      expect(siblingSignal.aborted).toBeTrue();
+      expect(owner.suggestionAbortController).toBeNull();
+      expect(owner.displaySuggestions).not.toHaveBeenCalled();
+    });
+  }
+
   it("does not let a late response overwrite the prefix of a reused current suggestion", async () => {
     const runtime = require("../lib/completion-runtime");
     const suggestion = { text: "abc" };
