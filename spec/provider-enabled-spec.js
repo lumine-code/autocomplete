@@ -11,6 +11,8 @@ describe("Dynamically enabled autocomplete providers", () => {
     editor = await lumine.workspace.open("");
     const pack = await lumine.packages.activatePackage("autocomplete");
     manager = pack.mainModule.autocompleteManager;
+    // These specs exercise requests after preparation; cold input has its own suite.
+    await manager.prepareCompletion();
     providerManager = manager.providerManager;
     lumine.views.getView(editor).focus();
     editor.setText("a");

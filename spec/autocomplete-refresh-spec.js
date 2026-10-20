@@ -50,6 +50,8 @@ describe("Autocomplete documentation during refresh", () => {
     editorView.focus();
     mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
     manager = mainModule.autocompleteManager;
+    // These specs exercise requests after preparation; cold input has its own suite.
+    await manager.prepareCompletion();
     details = [];
     nextText = "kN";
     nextLabel = undefined;

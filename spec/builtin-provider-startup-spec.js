@@ -54,10 +54,29 @@ describe("the built-in completion provider bootstrap", () => {
     expect(constructed).toBe(0);
   });
 
-  it("builds the buffer pool once when completion is actually requested", () => {
+  it("builds the buffer pool once outside the first request and keeps warm requests synchronous", async () => {
     expect(constructed).toBe(0);
+    const pending = manager.defaultProvider.getSuggestions({});
+    expect(constructed).toBe(0);
+    expect(await pending).toBe(suggestions);
     expect(manager.defaultProvider.getSuggestions({})).toBe(suggestions);
-    expect(manager.defaultProvider.getSuggestions({})).toBe(suggestions);
+    expect(constructed).toBe(1);
+  });
+  it("does not answer an aborted cold request", async () => {
+    const controller = new AbortController();
+    const pending = manager.defaultProvider.getSuggestions({ signal: controller.signal });
+    controller.abort();
+    expect(await pending).toEqual([]);
+  });
+  it("cancels cold construction on disable and uses the new generation on re-enable", async () => {
+    const old = manager.defaultProvider;
+    const pending = old.getSuggestions({});
+    manager.toggleDefaultProvider(false);
+    expect(await pending).toEqual([]);
+    expect(constructed).toBe(0);
+    manager.toggleDefaultProvider(true);
+    expect(await manager.defaultProvider.getSuggestions({})).toBe(suggestions);
+    expect(old.getSuggestions({})).toEqual([]);
     expect(constructed).toBe(1);
   });
 });

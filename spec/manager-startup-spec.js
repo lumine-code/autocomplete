@@ -4,12 +4,13 @@ const vm = require("node:vm");
 const { CompositeDisposable, Disposable } = require("lumine");
 
 describe("the autocomplete manager bootstrap", () => {
-  it("registers synchronously and loads completion work only for a real request", () => {
+  it("registers synchronously and loads completion work outside the first request", async () => {
     const isolatedModule = { exports: {} };
     const commands = [];
     let runtimeLoads = 0;
     let receiver;
     class ProviderManager {
+      prepare() {}
       initialize() {}
       dispose() {}
     }
@@ -35,6 +36,15 @@ describe("the autocomplete manager bootstrap", () => {
         setTimeout,
         clearTimeout,
         require(request) {
+          if (
+            [
+              "./background-preparation",
+              "./completion-matches",
+              "./get-additional-word-characters",
+              "./unicode-helpers",
+            ].includes(request)
+          )
+            return require(request.replace("./", "../lib/"));
           if (request === "lumine") return { CompositeDisposable, Disposable };
           if (request === "./provider-manager") return ProviderManager;
           if (request === "./suggestion-list") return SuggestionList;
@@ -89,7 +99,9 @@ describe("the autocomplete manager bootstrap", () => {
     manager.editor = {};
     manager.buffer = {};
     const publicRequest = manager.findSuggestions;
-    expect(manager.findSuggestions(true)).toBe("requested");
+    const pending = manager.findSuggestions(true);
+    expect(runtimeLoads).toBe(0);
+    expect(await pending).toBe("requested");
     expect(runtimeLoads).toBe(1);
     expect(receiver).toBe(manager);
     expect(manager.findSuggestions).toBe(publicRequest);

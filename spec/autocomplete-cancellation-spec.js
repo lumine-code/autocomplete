@@ -27,6 +27,8 @@ describe("Autocomplete cancellation", () => {
     editorView = lumine.views.getView(editor);
     const pack = await lumine.packages.activatePackage("autocomplete");
     manager = pack.mainModule.autocompleteManager;
+    // These specs exercise requests after preparation; cold input has its own suite.
+    await manager.prepareCompletion();
     editorView.focus();
     expect(manager.editor).toBe(editor);
     requests = [];

@@ -12,6 +12,8 @@ describe("provider manager startup", () => {
       {
         module: isolatedModule,
         require(request) {
+          if (request === "./background-preparation")
+            return require(request.replace("./", "../lib/"));
           if (request === "lumine") return { CompositeDisposable, Disposable };
           if (request === "./provider-metadata") {
             metadataLoads++;

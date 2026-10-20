@@ -24,6 +24,8 @@ describe("Autocomplete Manager deleting a prefix", () => {
     editorView = lumine.views.getView(editor);
     const pack = await lumine.packages.activatePackage("autocomplete");
     manager = pack.mainModule.autocompleteManager;
+    // These specs exercise requests after preparation; cold input has its own suite.
+    await manager.prepareCompletion();
     editorView.focus();
     requests = [];
     provider = {

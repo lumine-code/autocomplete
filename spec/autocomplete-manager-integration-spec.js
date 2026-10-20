@@ -60,6 +60,7 @@ describe("Autocomplete Manager integration", () => {
       editorView = lumine.views.getView(editor);
       mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
       await conditionPromise(() => mainModule.autocompleteManager);
+      await mainModule.autocompleteManager.prepareCompletion();
 
       provider = {
         scopeSelector: "*",
