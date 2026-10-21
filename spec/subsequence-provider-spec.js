@@ -3,8 +3,9 @@ const { conditionPromise } = require("./spec-helper");
 const path = require("path");
 
 let suggestionsForPrefix = async (provider, editor, prefix, options) => {
+  await editor.whenGrammarSettled();
   let bufferPosition = editor.getCursorBufferPosition();
-  let scopeDescriptor = editor.getLastCursor().getScopeDescriptor();
+  const [scopeDescriptor] = await editor.getScopeDescriptorsForBufferPositions([bufferPosition]);
   let suggestions = provider.getSuggestions({ editor, bufferPosition, prefix, scopeDescriptor });
   if (options && options.raw) {
     return suggestions;
@@ -63,10 +64,14 @@ describe("SubsequenceProvider", () => {
     editor.setText(lines.join("\n"));
     editor.setCursorBufferPosition([7000, 0]);
     await editor.whenGrammarSettled();
-    const scope = spyOn(editor, "scopeDescriptorForBufferPosition").and.callThrough();
+    const scope = spyOn(editor, "getScopeDescriptorsForBufferPositions").and.callThrough();
     expect(await suggestionsForPrefix(provider, editor, "taw")).toContain("targetWord");
     expect(
-      scope.calls.allArgs().some(([position]) => position.row === 6999 && position.column === 0),
+      scope.calls
+        .allArgs()
+        .some(([positions]) =>
+          positions.some((position) => position.row === 6999 && position.column === 0),
+        ),
     ).toBe(true);
   });
 
@@ -247,7 +252,7 @@ describe("SubsequenceProvider", () => {
 
   describe("when editor.nonWordCharacters changes", () => {
     it("includes characters that are included in the `autocomplete.extraWordCharacters` setting or not excluded in the `editor.nonWordCharacters` setting", async () => {
-      const scopeSelector = editor.getLastCursor().getScopeDescriptor().getScopeChain();
+      const scopeSelector = editor.getRootScopeDescriptor().getScopeChain();
       editor.insertText("good$noodles good-beef ");
 
       lumine.config.set("editor.nonWordCharacters", "$-", { scopeSelector });

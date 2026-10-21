@@ -672,11 +672,11 @@ describe("Provider API", () => {
       expect(editor.getText()).toBe("ohai\nohai\n");
     });
 
-    it("re-indents a multi-line plain-text edit when asked to", () => {
+    it("re-indents a multi-line plain-text edit when asked to", async () => {
       editor.setText("  const x = 1;\n");
       editor.setCursorBufferPosition([0, 14]);
 
-      autocompleteManager.replaceTextWithMatch({
+      await autocompleteManager.replaceTextWithMatch({
         text: "block",
         // LSP insertTextMode 2: adjust the inserted lines to their new
         // surroundings. Plain text has no tab stops, so nothing else does it.
