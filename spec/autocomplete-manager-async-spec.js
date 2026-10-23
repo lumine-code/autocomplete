@@ -1,4 +1,4 @@
-const { waitForAutocomplete, timeoutPromise, conditionPromise } = require("./spec-helper");
+const { timeoutPromise, conditionPromise } = require("./spec-helper");
 const path = require("path");
 
 describe("Async providers", () => {
@@ -38,8 +38,10 @@ describe("Async providers", () => {
   });
 
   describe("when an async provider is registered", () => {
+    let testAsyncProvider;
+
     beforeEach(() => {
-      let testAsyncProvider = {
+      testAsyncProvider = {
         getSuggestions(_options) {
           return new Promise((resolve) => {
             setTimeout(() => {
@@ -66,7 +68,20 @@ describe("Async providers", () => {
       editor.moveToBottom();
       editor.insertText("o");
 
-      await waitForAutocomplete(editor);
+      await conditionPromise(() => {
+        const context = autocompleteManager.suggestionContext;
+        const first = autocompleteManager.suggestionList.items?.[0];
+        const view = autocompleteManager.suggestionList._suggestionListElement;
+        return (
+          autocompleteManager.editor === editor &&
+          context?.editor === editor &&
+          context.position.isEqual(editor.getCursorBufferPosition()) &&
+          context.isCurrent() &&
+          first?.provider === testAsyncProvider &&
+          first.rightLabel === "asyncProvided" &&
+          view?.element.querySelector("li .right-label")?.textContent === "asyncProvided"
+        );
+      });
 
       let suggestionListView = autocompleteManager.suggestionList.suggestionListElement;
       expect(suggestionListView.element.querySelector("li .right-label")).toHaveText(
