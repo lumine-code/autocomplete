@@ -385,7 +385,7 @@ type ServiceProvider = {
      */
     prefix: string;
     /**
-     * While the request is pending, aborted when a newer request replaces it, the popup is cancelled,
+     * While the request is pending, aborted when a newer request replaces it, a suggestion is confirmed, the popup is cancelled,
      * the editor changes, or autocomplete is disposed. Providers may pass it
      * to cancellable work. An obsolete result is never ranked or displayed.
      * After providers and popup publication finish, cancellation ownership
@@ -500,6 +500,8 @@ module.exports = {
 ```
 
 ## Ranking
+
+Providers are selected once for each request, including `excludeLowerPriority`, before any results are shown. Ready providers can populate the popup while others are pending; each update merges their blocks in the same priority order. An explicit user selection survives later updates, including deduplication and the visible item limit. Resolving a suggestion does not modify the provider's result array. Manual single-result auto-confirmation is considered only after all providers finish and only if the user has not selected an entry from the partial list.
 
 **Each provider's suggestions are a block, and `suggestionPriority` alone decides where that block sits.** Providers are sorted by `suggestionPriority` descending — `scopeSelector` specificity breaks a tie, and nothing else enters into it — and each provider's results are then concatenated in that order. Scoring happens strictly _inside_ a block: a provider that sets `filterSuggestions` has its own items ranked by how well they match what was typed, but that ranking never crosses a block boundary. So an exact match from a low-priority provider still sits below a loose one from a high-priority provider, and a provider that leaves `suggestionPriority` unset takes the default of 1 and lands beneath every general-purpose provider in the ecosystem — including in the language it is the expert on.
 

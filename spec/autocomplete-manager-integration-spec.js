@@ -2523,7 +2523,7 @@ defm`);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
       });
 
-      it("does not update the suggestion list while composition is in progress", async () => {
+      it("hides completion during IME composition and resumes after composition ends", async () => {
         const activeElement = editorView.querySelector("input");
         spyOn(autocompleteManager.suggestionList, "changeItems").and.callThrough();
 
@@ -2542,33 +2542,39 @@ defm`);
         activeElement.dispatchEvent(
           buildIMECompositionEvent("compositionstart", { data: "i", target: activeElement }),
         );
-        triggerAutocompletion(editor, false, "i");
-
-        await conditionPromise(
-          () => autocompleteManager.suggestionList.changeItems.calls.count() > 0,
+        expect(autocompleteManager.suggestionList.isActive()).toBe(false);
+        activeElement.dispatchEvent(
+          buildIMECompositionEvent("compositionupdate", { data: "i", target: activeElement }),
         );
-
+        await timeoutPromise(50);
         expect(
-          autocompleteManager.suggestionList.changeItems.calls.mostRecent().args[0][0].text,
-        ).toBe("quicksort");
+          autocompleteManager.suggestionList.changeItems.calls
+            .all()
+            .every((call) => call.args[0] === null),
+        ).toBe(true);
         autocompleteManager.suggestionList.changeItems.calls.reset();
 
         activeElement.dispatchEvent(
           buildIMECompositionEvent("compositionupdate", { data: "ï", target: activeElement }),
         );
-        editor.selectLeft();
-
-        editor.insertText("ï");
-
-        const initialCallCount = autocompleteManager.suggestionList.changeItems.calls.count();
-        await conditionPromise(
-          () => autocompleteManager.suggestionList.changeItems.calls.count() > initialCallCount,
-        );
-
+        await timeoutPromise(50);
         expect(autocompleteManager.suggestionList.changeItems).toHaveBeenCalledWith(null);
+        expect(
+          autocompleteManager.suggestionList.changeItems.calls
+            .all()
+            .every((call) => call.args[0] === null),
+        ).toBe(true);
         activeElement.dispatchEvent(
           buildIMECompositionEvent("compositionend", { target: activeElement }),
         );
+        expect(autocompleteManager.compositionInProgress).toBe(false);
+        // Composition updates replace the selected composing text themselves.
+        // Commit the final character, as Chromium's following textInput does.
+        editor.insertText("i");
+        await waitForAutocomplete(editor);
+        expect(
+          autocompleteManager.suggestionList.items.some((item) => item.text === "quicksort"),
+        ).toBe(true);
       });
 
       it("does not show the suggestion list when it is triggered then no longer needed", async () => {

@@ -6,6 +6,8 @@ The autocomplete package displays possible completions as you type. See the [pac
 
 A suggestion list appears while you type, after a configurable activation delay. Out of the box, a built-in provider completes words from the current buffer (or from all open buffers, configurable). You can also open the list on demand with `autocomplete:activate`, confirm a suggestion with `autocomplete:confirm`, and dismiss it with `autocomplete:cancel`.
 
+Ready suggestions appear while slower providers are still working. Later results retain their normal priority, but do not change an entry you have explicitly selected; that choice remains visible within the configured suggestion limit. Confirming or dismissing the list prevents a late response from reopening it. Automatic acceptance of a single result after manual activation waits for all providers and does not override a choice made while they were loading.
+
 When an unmodified file changes outside the editor, Lumine reloads its text and closes any existing completion list. The external change does not trigger suggestions or accept an entry through a commit character. Typing afterwards and opening completion manually work as usual.
 
 Behavior — the activation delay, whether to auto-confirm a single suggestion, minimum word length, and more — is configured in the package's settings in **Settings → Packages → autocomplete**.
