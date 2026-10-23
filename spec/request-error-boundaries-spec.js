@@ -1,7 +1,7 @@
 const { conditionPromise } = require("./spec-helper");
 
 describe("Autocomplete event request failures", () => {
-  let editor, manager, registration, failure, pending, release;
+  let editor, manager, registration, provider, failure, pending, release, requesting;
   beforeEach(async () => {
     jasmine.useRealClock();
     lumine.config.set("autocomplete.enableAutoActivation", false);
@@ -19,16 +19,26 @@ describe("Autocomplete event request failures", () => {
     editor.setCursorBufferPosition([0, 1]);
     manager.cancelSuggestions();
     failure = new Error("Expected completion provider failure");
-    registration = pack.mainModule.consumeAutocomplete({
+    provider = {
       scopeSelector: "*",
       inclusionPriority: 10,
       excludeLowerPriority: true,
       getSuggestions: () => Promise.reject(failure),
-    });
+    };
+    registration = pack.mainModule.consumeAutocomplete(provider);
     spyOn(console, "error");
     const find = manager.findSuggestions.bind(manager);
     spyOn(manager, "findSuggestions").and.callFake((...args) => {
-      pending = find(...args);
+      requesting = true;
+      try {
+        pending = find(...args);
+      } catch (error) {
+        pending = Promise.reject(error);
+        void pending.catch(() => {});
+        throw error;
+      } finally {
+        requesting = false;
+      }
       // Observe the real rejected request without letting the baseline's
       // unowned rejection interrupt the missing-boundary assertion.
       void pending?.catch(() => {});
@@ -46,10 +56,24 @@ describe("Autocomplete event request failures", () => {
   for (const source of ["provider", "scope query"]) {
     for (const trigger of ["manual", "automatic", "delayed automatic", "indent retry"]) {
       it(`owns a ${source} rejection from ${trigger}`, async () => {
-        if (source === "scope query")
-          spyOn(editor, "getScopeDescriptorsForBufferPositions").and.callFake(() =>
-            Promise.reject(failure),
-          );
+        let scopeFailed = false;
+        if (source === "scope query") {
+          const asynchronous = Boolean(editor.getBuffer().getLanguageMode().asynchronousSyntax);
+          const target = asynchronous ? editor : editor.getLastCursor();
+          const method = asynchronous
+            ? "getScopeDescriptorsForBufferPositions"
+            : "getScopeDescriptor";
+          const read = target[method].bind(target);
+          spyOn(target, method).and.callFake((...args) => {
+            // Other editor work can read scopes while the command is dispatched.
+            // Fail only the completion request whose event boundary is under test.
+            if (!requesting) return read(...args);
+            scopeFailed = true;
+            if (asynchronous) return Promise.reject(failure);
+            throw failure;
+          });
+          spyOn(provider, "getSuggestions").and.returnValue([]);
+        }
         if (trigger === "manual") {
           lumine.commands.dispatch(lumine.views.getView(editor), "autocomplete:activate");
         } else if (trigger === "indent retry") {
@@ -68,6 +92,10 @@ describe("Autocomplete event request failures", () => {
         expect(console.error).toHaveBeenCalledWith("Unable to request completions", failure);
         expect(manager.shouldDisplaySuggestions).toBe(false);
         expect(manager.suggestionList.isActive()).toBe(false);
+        if (source === "scope query") {
+          expect(scopeFailed).toBe(true);
+          expect(provider.getSuggestions).not.toHaveBeenCalled();
+        }
       });
     }
   }
@@ -78,13 +106,14 @@ describe("Autocomplete event request failures", () => {
   });
 
   it("does not cancel or report over a newer request when an old event request fails", async () => {
-    spyOn(editor, "getScopeDescriptorsForBufferPositions").and.callFake(
+    spyOn(provider, "getSuggestions").and.callFake(
       () =>
         new Promise((_resolve, reject) => {
           release = () => reject(failure);
         }),
     );
     lumine.commands.dispatch(lumine.views.getView(editor), "autocomplete:activate");
+    await conditionPromise(() => typeof release === "function");
     const old = pending;
     manager.cancelSuggestions();
     manager.shouldDisplaySuggestions = true;
