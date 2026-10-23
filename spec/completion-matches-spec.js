@@ -1,8 +1,10 @@
 describe("Completion match ownership", () => {
-  let matches;
+  let matches, editor;
   beforeEach(() => {
     matches = require("../lib/completion-matches");
+    editor = lumine.workspace.buildTextEditor();
   });
+  afterEach(() => editor.destroy());
 
   it("reuses scoring for label highlights without calling the native matcher", () => {
     spyOn(lumine.tools.fuzzyMatcher, "match").and.throwError("Native rendering match");
@@ -69,7 +71,7 @@ describe("Completion match ownership", () => {
       },
     };
     const owner = {
-      editor: {},
+      editor,
       editorLabels: [],
       providerManager: { applicableProviders: () => [provider] },
       filterSuggestions: jasmine.createSpy("obsolete ranking"),
@@ -92,7 +94,7 @@ describe("Completion match ownership", () => {
     const runtime = require("../lib/completion-runtime");
     const signals = [];
     const owner = {
-      editor: {},
+      editor,
       editorLabels: [],
       providerManager: {
         applicableProviders: () => [
@@ -127,7 +129,7 @@ describe("Completion match ownership", () => {
       answer = resolve;
     });
     const owner = {
-      editor: {},
+      editor,
       providerManager: {
         applicableProviders: () => [
           {
@@ -171,7 +173,7 @@ describe("Completion match ownership", () => {
       let siblingSignal;
       const error = new Error("provider failed");
       const owner = {
-        editor: {},
+        editor,
         providerManager: {
           applicableProviders: () => [
             {
@@ -211,7 +213,7 @@ describe("Completion match ownership", () => {
       getSuggestions: (options) => (options.prefix === "a" ? pending : [suggestion]),
     };
     const owner = {
-      editor: {},
+      editor,
       editorLabels: [],
       providerManager: { applicableProviders: () => [provider] },
       displaySuggestions: jasmine.createSpy("current presentation"),
