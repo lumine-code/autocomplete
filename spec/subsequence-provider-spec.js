@@ -64,13 +64,19 @@ describe("SubsequenceProvider", () => {
     editor.setText(lines.join("\n"));
     editor.setCursorBufferPosition([7000, 0]);
     await editor.whenGrammarSettled();
-    const scope = spyOn(editor, "getScopeDescriptorsForBufferPositions").and.callThrough();
+    const batchedScopes = Boolean(editor.getBuffer().getLanguageMode().asynchronousSyntax);
+    const scope = spyOn(
+      editor,
+      batchedScopes ? "getScopeDescriptorsForBufferPositions" : "scopeDescriptorForBufferPosition",
+    ).and.callThrough();
     expect(await suggestionsForPrefix(provider, editor, "taw")).toContain("targetWord");
     expect(
       scope.calls
         .allArgs()
         .some(([positions]) =>
-          positions.some((position) => position.row === 6999 && position.column === 0),
+          (batchedScopes ? positions : [positions]).some(
+            (position) => position.row === 6999 && position.column === 0,
+          ),
         ),
     ).toBe(true);
   });
