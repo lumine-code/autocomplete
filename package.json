@@ -253,7 +253,7 @@
     }
   },
   "dependencies": {
-    "@lumine-code/selector-kit": "github:lumine-code/selector-kit#372b3b8d0f78e361da4166ce156f7caf1c667418",
+    "@lumine-code/selector-kit": "github:lumine-code/selector-kit#ae6dc1e2162a6820a057c0b9e2b6605f6359846f",
     "picomatch": "^4.0.7"
   },
   "devDependencies": {
