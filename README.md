@@ -13,6 +13,8 @@ Fork of [pulsar-edit/pulsar](https://github.com/pulsar-edit/pulsar) (`packages/a
 - **Fuzzy or strict matching**: match suggestions loosely with smart scoring or require an exact prefix.
 - **Filtering controls**: skip suggestions for blacklisted files, scopes, and editor classes.
 
+Automatic suggestions follow short typing gestures rather than bulk paste or replacement operations. Provider prefixes contain complete words up to 4096 UTF-16 units; a longer word produces an empty prefix, never a truncated replacement target. Providers may still resolve an explicit request from its document position.
+
 ![Complete a partially typed symbol from the current buffer.](.github/demo.png)
 
 ## Installation

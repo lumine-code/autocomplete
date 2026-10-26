@@ -39,6 +39,7 @@ describe("the autocomplete manager bootstrap", () => {
           if (
             [
               "./background-preparation",
+              "./change-text",
               "./completion-matches",
               "./get-additional-word-characters",
               "./unicode-helpers",
