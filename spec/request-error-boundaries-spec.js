@@ -3,6 +3,8 @@ const { conditionPromise } = require("./spec-helper");
 describe("Autocomplete event request failures", () => {
   let editor, manager, registration, provider, failure, pending, release, requesting;
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     jasmine.useRealClock();
     lumine.config.set("autocomplete.enableAutoActivation", false);
     lumine.config.set("autocomplete.autoActivationDelay", 0);

@@ -22,6 +22,8 @@ describe("SubsequenceProvider", () => {
   let [editor, mainModule, provider] = [];
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
 
@@ -52,6 +54,42 @@ describe("SubsequenceProvider", () => {
   });
 
   afterEach(() => provider?.dispose());
+
+  it("never scans null-grammar buffers as completion sources for another document", async () => {
+    const source = lumine.workspace.buildTextEditor();
+    source.setText("quicksuspendedword");
+    const registration = lumine.textEditors.add(source, { role: "document" });
+    const scan = spyOn(source.getBuffer(), "findWordCandidates").and.callThrough();
+    try {
+      source.setGrammar(lumine.grammars.nullGrammar);
+      lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", true);
+      expect(await suggestionsForPrefix(provider, editor, "quick")).not.toContain(
+        "quicksuspendedword",
+      );
+      expect(scan).not.toHaveBeenCalled();
+      source.setGrammar(editor.getGrammar());
+      expect(await suggestionsForPrefix(provider, editor, "quick")).toContain("quicksuspendedword");
+      expect(scan).toHaveBeenCalled();
+    } finally {
+      registration.dispose();
+      source.destroy();
+    }
+  });
+
+  it("aborts a source scan and drops its words when None is selected", async () => {
+    let finish;
+    const scan = spyOn(editor.getBuffer(), "findWordCandidates").and.returnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const pending = provider.bufferToSubsequenceMatches("quick", "", editor, editor.getBuffer());
+    const signal = scan.calls.mostRecent().args[1].signal;
+    editor.setGrammar(lumine.grammars.nullGrammar);
+    expect(signal.aborted).toBeTrue();
+    finish([{ word: "quicksuspendedword" }]);
+    expect(await pending).toEqual([]);
+  });
 
   it("runs a completion ", async () => {
     const suggestions = await suggestionsForPrefix(provider, editor, "quick");
@@ -391,6 +429,7 @@ describe("SubsequenceProvider", () => {
       // Create a TextEditor that is NOT part of the workspace
       // (e.g., a search field or a watch pane editor)
       const nonWorkspaceEditor = new TextEditor();
+      nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       nonWorkspaceEditor.setText("function testWord() {}");
 
       const suggestions = await suggestionsForPrefix(provider, nonWorkspaceEditor, "test");
@@ -411,6 +450,7 @@ describe("SubsequenceProvider", () => {
 
       // Create a non-workspace editor
       const nonWorkspaceEditor = new TextEditor();
+      nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       nonWorkspaceEditor.setText("untrackedWord");
 
       // Get suggestions from the workspace editor - this should not crash
@@ -424,9 +464,11 @@ describe("SubsequenceProvider", () => {
 
     it("shares words between fragment editors, like notebook cells", async () => {
       const cellA = new TextEditor();
+      cellA.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       cellA.setText("cable = 1");
       const registrationA = lumine.textEditors.add(cellA, { role: "fragment" });
       const cellB = new TextEditor();
+      cellB.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       const registrationB = lumine.textEditors.add(cellB, { role: "fragment" });
 
       const suggestions = await suggestionsForPrefix(provider, cellB, "cab");
@@ -440,16 +482,21 @@ describe("SubsequenceProvider", () => {
 
     it("does not source completions from viewers or inputs", async () => {
       const viewer = new TextEditor();
+      viewer.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       viewer.setText("backstageword = 1");
       const viewerRegistration = lumine.textEditors.add(viewer, { role: "viewer" });
       const mini = new TextEditor({ mini: true });
+      mini.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       mini.setText("minifiedword");
       const miniRegistration = lumine.textEditors.add(mini, { role: "input" });
       const input = new TextEditor();
+      input.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       input.setText("formfieldword");
       const inputRegistration = lumine.textEditors.add(input, { role: "input" });
 
       const asker = new TextEditor();
+
+      asker.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       expect(await suggestionsForPrefix(provider, asker, "backstage")).not.toContain(
         "backstageword",
       );
@@ -469,10 +516,13 @@ describe("SubsequenceProvider", () => {
 
     it("stops sourcing a fragment's buffer when it is unregistered", async () => {
       const cell = new TextEditor();
+      cell.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       cell.setText("cadence = 1");
       const registration = lumine.textEditors.add(cell, { role: "fragment" });
 
       const asker = new TextEditor();
+
+      asker.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       expect(await suggestionsForPrefix(provider, asker, "caden")).toContain("cadence");
 
       registration.dispose();
@@ -484,6 +534,7 @@ describe("SubsequenceProvider", () => {
 
     it("handles bufferToSubsequenceMatches gracefully for an untracked buffer", async () => {
       const nonWorkspaceEditor = new TextEditor();
+      nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       nonWorkspaceEditor.setText("function anotherTestWord() {}");
 
       // An untracked buffer that does not belong to the requesting editor

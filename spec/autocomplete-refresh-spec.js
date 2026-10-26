@@ -30,6 +30,8 @@ describe("Autocomplete documentation during refresh", () => {
   };
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     view = null;
     jasmine.useRealClock();
     if (jasmine.isSpy(lumine.views.readDocument)) lumine.views.readDocument.and.callThrough();

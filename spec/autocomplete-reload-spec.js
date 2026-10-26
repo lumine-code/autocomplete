@@ -28,6 +28,8 @@ describe("Autocomplete during file reload", () => {
   };
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     jasmine.useRealClock();
     lumine.config.set("autocomplete.enableAutoActivation", true);
     lumine.config.set("autocomplete.autoActivationDelay", 0);
@@ -49,6 +51,7 @@ describe("Autocomplete during file reload", () => {
     buffer = await TextBuffer.load(source);
     buffer.fileChangeDelay = 0;
     editor = new TextEditor({ buffer });
+    editor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
     await lumine.workspace.open(editor);
     editor.setCursorBufferPosition([1, 2]);
     editorView = lumine.views.getView(editor);

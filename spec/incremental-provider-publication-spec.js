@@ -46,6 +46,8 @@ describe("Incremental completion provider publication", () => {
     );
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     jasmine.useRealClock();
     registrations = [];
     gates = [];

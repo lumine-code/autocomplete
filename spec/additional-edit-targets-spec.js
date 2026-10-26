@@ -2,6 +2,8 @@ describe("Additional completion edit targets", () => {
   let editor, main, manager, lease;
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     for (const method of ["openExternal", "openPath", "showItemInFolder", "openApplication"])
       spyOn(lumine.shell, method).and.returnValue(Promise.resolve());
     spyOn(lumine.application, "openWindow").and.returnValue(Promise.resolve());

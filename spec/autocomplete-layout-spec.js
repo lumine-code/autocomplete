@@ -26,6 +26,8 @@ describe("Autocomplete popup layout", () => {
   };
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     view = null;
     jasmine.useRealClock();
     // The shared spec helper replaces the schedulers with immediate calls.

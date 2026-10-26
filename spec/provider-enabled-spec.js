@@ -4,6 +4,8 @@ describe("Dynamically enabled autocomplete providers", () => {
   let manager, providerManager, editor, provider, registration, fallback;
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     lumine.config.set("autocomplete.enableBuiltinProvider", true);
     lumine.config.set("autocomplete.enableAutoActivation", false);
     lumine.config.set("autocomplete.autoActivationDelay", 0);

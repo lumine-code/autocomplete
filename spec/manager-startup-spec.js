@@ -65,6 +65,7 @@ describe("the autocomplete manager bootstrap", () => {
           throw new Error(`Unexpected manager bootstrap dependency: ${request}`);
         },
         lumine: {
+          grammars: { nullGrammar: { scopeName: "text.plain.null-grammar" } },
           config: {
             observe(key, callback) {
               callback(key === "autocomplete.suppressActivationForEditorClasses" ? [] : false);
@@ -99,7 +100,7 @@ describe("the autocomplete manager bootstrap", () => {
     expect(runtimeLoads).toBe(0);
     manager = new isolatedModule.exports();
     manager.initialize();
-    manager.editor = {};
+    manager.editor = { getGrammar: () => ({ scopeName: "text.plain" }) };
     manager.buffer = {};
     const publicRequest = manager.findSuggestions;
     const pending = manager.findSuggestions(true);

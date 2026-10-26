@@ -3,6 +3,8 @@ require("./spec-helper");
 describe("Autocomplete syntax request lifetime", () => {
   let editor, manager, registration, release, epoch, mode;
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     jasmine.useRealClock();
     lumine.config.set("autocomplete.enableAutoActivation", false);
     jasmine.attachToDOM(lumine.views.getView(lumine.workspace));
@@ -48,6 +50,21 @@ describe("Autocomplete syntax request lifetime", () => {
       legacyPrefix: "c",
     });
   }
+
+  it("never invokes a provider or reads a prefix for None, and resumes with a grammar", async () => {
+    const grammar = editor.getGrammar();
+    editor.setGrammar(lumine.grammars.nullGrammar);
+    const prefix = spyOn(manager, "getPrefix").and.callThrough();
+    await manager.findSuggestions(true);
+    await suggestions();
+    expect(prefix).not.toHaveBeenCalled();
+    expect(release).toBeUndefined();
+    editor.setGrammar(grammar);
+    const pending = suggestions();
+    expect(typeof release).toBe("function");
+    release([]);
+    await pending;
+  });
 
   for (const change of ["grammar", "query epoch"]) {
     it(`does not publish a late provider result after ${change} changes`, async () => {

@@ -1,6 +1,8 @@
 describe("autocomplete presentation window", () => {
   let main;
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     jasmine.useRealClock();
     jasmine.attachToDOM(lumine.workspace.getElement());
     main = (await lumine.packages.activatePackage("autocomplete")).mainModule;

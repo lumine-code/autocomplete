@@ -10,7 +10,9 @@ const fragmentToHtml = (fragment) => {
 describe("Suggestion List Element", () => {
   let [suggestionListElement] = [];
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     suggestionListElement = new SuggestionListElement();
   });
 

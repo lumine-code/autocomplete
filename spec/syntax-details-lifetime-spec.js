@@ -3,6 +3,8 @@ require("./spec-helper");
 describe("Autocomplete detail result ownership", () => {
   let editor, manager, release, epoch;
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     jasmine.useRealClock();
     lumine.config.set("autocomplete.enableAutoActivation", false);
     jasmine.attachToDOM(lumine.views.getView(lumine.workspace));

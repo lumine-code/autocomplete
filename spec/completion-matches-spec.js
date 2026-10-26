@@ -1,6 +1,8 @@
 describe("Completion match ownership", () => {
   let matches, editor;
-  beforeEach(() => {
+  beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     matches = require("../lib/completion-matches");
     editor = lumine.workspace.buildTextEditor();
   });

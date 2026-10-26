@@ -6,7 +6,9 @@ describe("Autocomplete Manager undo transactions", () => {
   let editor;
   let mainModule;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     // Set to live completion
     lumine.config.set("autocomplete.enableAutoActivation", true);

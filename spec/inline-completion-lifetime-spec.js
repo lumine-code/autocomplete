@@ -4,6 +4,8 @@ describe("Autocomplete with inline parser publication", () => {
   let editor, manager, mode, registration, release, registry, grammar, grammarRegistration;
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     jasmine.useRealClock();
     lumine.config.set("autocomplete.enableAutoActivation", false);
     jasmine.attachToDOM(lumine.views.getView(lumine.workspace));

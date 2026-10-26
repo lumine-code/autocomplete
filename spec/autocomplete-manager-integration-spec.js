@@ -34,7 +34,9 @@ describe("Autocomplete Manager integration", () => {
     return `${Math.round(left)}px`;
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     lumine.workspace.project.setPaths([path.join(__dirname, "fixtures")]);
     jasmine.useRealClock();
     gutterWidth = null;
@@ -2666,6 +2668,8 @@ defm`);
       // Create an editor in the bottom panel,
       // requesting autocompletions from a given label.
       bottomEditor = new TextEditor();
+
+      bottomEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       bottomEditorView = lumine.views.getView(bottomEditor);
       lumine.workspace.addBottomPanel({ item: bottomEditorView, visible: true });
       autocompleteDisposable = autocompleteManager.watchEditor(bottomEditor, ["bottom-label"]);
@@ -2709,6 +2713,8 @@ defm`);
       editorView.focus();
 
       const strayEditor = new TextEditor();
+
+      strayEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       const strayView = lumine.views.getView(strayEditor);
       lumine.workspace.addBottomPanel({ item: strayView, visible: true });
       strayView.focus();
@@ -2736,6 +2742,8 @@ defm`);
       workspaceElement.style.height = "400px";
 
       const miniEditor = new TextEditor({ mini: true });
+
+      miniEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
       const miniView = lumine.views.getView(miniEditor);
       const container = document.createElement("div");
       container.appendChild(miniView);

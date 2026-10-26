@@ -15,6 +15,8 @@ describe("Autocomplete Manager deleting a prefix", () => {
   };
 
   beforeEach(async () => {
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     lumine.config.set("autocomplete.enableAutoActivation", true);
     lumine.config.set("autocomplete.autoActivationDelay", 0);
     lumine.config.set("autocomplete.enableAutoConfirmSingleSuggestion", false);
