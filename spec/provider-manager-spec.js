@@ -145,11 +145,14 @@ describe("Provider Manager", () => {
       );
     });
 
-    it("rejects an invalid provider with an error notification", () => {
+    it("rejects an invalid provider with literal provider context and validation diagnostics", () => {
       lumine.notifications.clear();
+      const name = String.raw`C:\Projects\[demo]\_legacy`;
       const legacyProvider = {
+        constructor: { name },
         getSuggestions(_options) {},
         selector: ".source.python",
+        disableForSelector: ".source.python .comment",
         dispose() {},
       };
       const disposable = providerManager.registerProvider(legacyProvider);
@@ -159,7 +162,15 @@ describe("Provider Manager", () => {
       const notifications = lumine.notifications.getNotifications();
       expect(notifications.length).toBe(1);
       expect(notifications[0].getType()).toBe("error");
-      expect(notifications[0].getMessage()).toContain("Invalid autocomplete provider");
+      expect(notifications[0].getMessage()).toBe("Invalid autocomplete provider rejected");
+      expect(notifications[0].getOptions().description).toBe(
+        "A package registered an autocomplete provider that does not satisfy the `autocomplete.provider` service contract.",
+      );
+      expect(notifications[0].getDetail()).toBe(
+        `Provider: ${name}\n\n` +
+          "`selector` is no longer supported; rename it to `scopeSelector`\n" +
+          "`disableForSelector` is no longer supported; rename it to `disableForScopeSelector`",
+      );
     });
 
     it("registers a valid provider", () => {
