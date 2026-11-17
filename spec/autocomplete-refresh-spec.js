@@ -379,13 +379,93 @@ describe("Autocomplete documentation during refresh", () => {
 
     it("does not paint a below-cursor popup before quick documentation moves it above", async () => {
       await placeCaret();
+      const popup = manager.suggestionList.suggestionListElement;
+      const deferInitialPresentation = popup.deferInitialPresentation;
+      const clearTimeout = spyOn(popup.domWindow, "clearTimeout").and.callThrough();
+      const controlledTimers = [];
+      spyOn(popup, "deferInitialPresentation").and.callFake(function (...args) {
+        expect(this).toBe(popup);
+        const result = deferInitialPresentation.apply(this, args);
+        const timer = this.initialPresentationTimeout;
+        expect(timer).not.toBeNull();
+        controlledTimers.push(timer);
+        // Two real frames can exceed the presentation deadline on a busy
+        // renderer. This case resolves before that deadline; the slow-provider
+        // case below independently exercises the real bounded timeout.
+        this.domWindow.clearTimeout(timer);
+        return result;
+      });
       const sampling = samplePresentation();
       try {
         await beginTyping();
+        expect(view).toBe(popup);
+        expect(controlledTimers.length).toBeGreaterThan(0);
         await frames(2);
         await finishDetails(0, { descriptionMarkdown: documentation });
         await frames(4);
         expectFinalPosition(sampling.entries);
+        expect(popup.initialPresentationTimeout).toBeNull();
+        expect(popup.element.hasAttribute("data-initializing")).toBe(false);
+        for (const timer of controlledTimers) {
+          expect(
+            clearTimeout.calls.allArgs().filter(([handle]) => handle === timer).length,
+          ).toBeGreaterThan(1);
+        }
+      } finally {
+        sampling.stop();
+      }
+    });
+
+    it("fits the bounded fallback before its first visible frame while documentation is pending", async () => {
+      await placeCaret();
+      const popup = manager.suggestionList.suggestionListElement;
+      const ownerWindow = popup.domWindow;
+      const schedule = ownerWindow.setTimeout.bind(ownerWindow);
+      const deferInitialPresentation = popup.deferInitialPresentation;
+      let capturingDeadline = false;
+      let expire;
+      const scheduleDeadline = (callback, delay, ...args) => {
+        const timer = schedule(callback, delay, ...args);
+        if (capturingDeadline) {
+          expect(delay).toBe(75);
+          ownerWindow.clearTimeout(timer);
+          expire = () => callback(...args);
+        }
+        return timer;
+      };
+      const controlledWindow = new Proxy(ownerWindow, {
+        get(target, key) {
+          if (key === "setTimeout") return scheduleDeadline;
+          const value = Reflect.get(target, key, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      });
+      spyOnProperty(popup, "domWindow", "get").and.returnValue(controlledWindow);
+      spyOn(popup, "deferInitialPresentation").and.callFake(function (...args) {
+        expect(this).toBe(popup);
+        capturingDeadline = true;
+        try {
+          return deferInitialPresentation.apply(this, args);
+        } finally {
+          capturingDeadline = false;
+        }
+      });
+      const sampling = samplePresentation();
+      try {
+        await beginTyping();
+        await frames(2);
+        const overlay = popup.element.closest("lumine-overlay");
+        expect(getComputedStyle(overlay).visibility).toBe("hidden");
+        expect(typeof expire).toBe("function");
+        expire();
+        await frames(6);
+        expect(sampling.entries.length).toBeGreaterThan(1);
+        for (const entry of sampling.entries) expect(entry.side).toBe("above");
+        expect(getComputedStyle(overlay).visibility).toBe("visible");
+        expect(manager.suggestionList.isActive()).toBe(true);
+        expect(popup.ol.querySelector(".word").textContent).toBe("kN");
+        await finishDetails(0, { descriptionMarkdown: documentation });
+        expect(overlay.dataset.overlayPosition).toBe("above");
       } finally {
         sampling.stop();
       }

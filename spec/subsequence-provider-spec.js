@@ -429,20 +429,24 @@ describe("SubsequenceProvider", () => {
       // Create a TextEditor that is NOT part of the workspace
       // (e.g., a search field or a watch pane editor)
       const nonWorkspaceEditor = new TextEditor();
-      nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
-      nonWorkspaceEditor.setText("function testWord() {}");
+      try {
+        nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
+        nonWorkspaceEditor.setText("function testWord() {}");
 
-      const suggestions = await suggestionsForPrefix(provider, nonWorkspaceEditor, "test");
-      expect(suggestions).toContain("testWord");
+        const suggestions = await suggestionsForPrefix(provider, nonWorkspaceEditor, "test");
+        expect(suggestions).toContain("testWord");
 
-      // Words from open workspace buffers are offered too, since the panel
-      // editor's own buffer holds only the entry being typed.
-      const workspaceSuggestions = await suggestionsForPrefix(
-        provider,
-        nonWorkspaceEditor,
-        "quick",
-      );
-      expect(workspaceSuggestions).toContain("quicksort");
+        // Words from open workspace buffers are offered too, since the panel
+        // editor's own buffer holds only the entry being typed.
+        const workspaceSuggestions = await suggestionsForPrefix(
+          provider,
+          nonWorkspaceEditor,
+          "quick",
+        );
+        expect(workspaceSuggestions).toContain("quicksort");
+      } finally {
+        nonWorkspaceEditor.destroy();
+      }
     });
 
     it("does not crash when includeCompletionsFromAllBuffers includes untracked buffers", async () => {
@@ -450,16 +454,20 @@ describe("SubsequenceProvider", () => {
 
       // Create a non-workspace editor
       const nonWorkspaceEditor = new TextEditor();
-      nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
-      nonWorkspaceEditor.setText("untrackedWord");
+      try {
+        nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
+        nonWorkspaceEditor.setText("untrackedWord");
 
-      // Get suggestions from the workspace editor - this should not crash
-      // even though there's a non-workspace editor with an untracked buffer
-      const suggestions = await suggestionsForPrefix(provider, editor, "quick");
+        // Get suggestions from the workspace editor - this should not crash
+        // even though there's a non-workspace editor with an untracked buffer
+        const suggestions = await suggestionsForPrefix(provider, editor, "quick");
 
-      expect(suggestions).toContain("quicksort");
+        expect(suggestions).toContain("quicksort");
 
-      lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
+        lumine.config.set("autocomplete.includeCompletionsFromAllBuffers", false);
+      } finally {
+        nonWorkspaceEditor.destroy();
+      }
     });
 
     it("shares words between fragment editors, like notebook cells", async () => {
@@ -534,28 +542,32 @@ describe("SubsequenceProvider", () => {
 
     it("handles bufferToSubsequenceMatches gracefully for an untracked buffer", async () => {
       const nonWorkspaceEditor = new TextEditor();
-      nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
-      nonWorkspaceEditor.setText("function anotherTestWord() {}");
+      try {
+        nonWorkspaceEditor.setGrammar(lumine.grammars.grammarForScopeName("text.plain"));
+        nonWorkspaceEditor.setText("function anotherTestWord() {}");
 
-      // An untracked buffer that does not belong to the requesting editor
-      // yields no matches instead of throwing
-      const matches = await provider.bufferToSubsequenceMatches(
-        "another",
-        "",
-        editor,
-        nonWorkspaceEditor.getBuffer(),
-      );
-      expect(Array.isArray(matches)).toBe(true);
-      expect(matches.length).toBe(0);
+        // An untracked buffer that does not belong to the requesting editor
+        // yields no matches instead of throwing
+        const matches = await provider.bufferToSubsequenceMatches(
+          "another",
+          "",
+          editor,
+          nonWorkspaceEditor.getBuffer(),
+        );
+        expect(Array.isArray(matches)).toBe(true);
+        expect(matches.length).toBe(0);
 
-      // The requesting editor's own untracked buffer is searched directly
-      const ownMatches = await provider.bufferToSubsequenceMatches(
-        "another",
-        "",
-        nonWorkspaceEditor,
-        nonWorkspaceEditor.getBuffer(),
-      );
-      expect(ownMatches.map((m) => m.word)).toContain("anotherTestWord");
+        // The requesting editor's own untracked buffer is searched directly
+        const ownMatches = await provider.bufferToSubsequenceMatches(
+          "another",
+          "",
+          nonWorkspaceEditor,
+          nonWorkspaceEditor.getBuffer(),
+        );
+        expect(ownMatches.map((m) => m.word)).toContain("anotherTestWord");
+      } finally {
+        nonWorkspaceEditor.destroy();
+      }
     });
   });
 });

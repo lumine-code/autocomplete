@@ -10,7 +10,14 @@ beforeEach(() => {
 function waitForAutocomplete(editor) {
   const editorView = lumine.views.getView(editor);
 
-  return conditionPromise(() => editorView.querySelectorAll(".autocomplete li").length > 0);
+  return conditionPromise(() => {
+    const overlay = editorView.querySelector(".autocomplete");
+    return (
+      overlay?.isConnected &&
+      getComputedStyle(overlay).visibility === "visible" &&
+      overlay.querySelectorAll("li").length > 0
+    );
+  });
 }
 
 function waitForAutocompleteToDisappear(editor) {
