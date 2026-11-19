@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 require("./spec-helper");
 
 describe("Autocomplete syntax request lifetime", () => {
@@ -146,7 +147,7 @@ describe("Autocomplete syntax request lifetime", () => {
     }
   });
 
-  it("owns a rejected commit-character task dispatched by a buffer event", async () => {
+  it("owns a rejected commit-character task dispatched by settled input", async () => {
     const error = new Error("Snippet preparation failed");
     const rejected = Promise.reject(error);
     // Keep the baseline run observable without letting its unowned rejection
@@ -155,7 +156,7 @@ describe("Autocomplete syntax request lifetime", () => {
     spyOn(console, "error");
     spyOn(manager, "suggestionForCommitCharacter").and.returnValue({ text: "console" });
     spyOn(manager, "confirmWithCommitCharacter").and.returnValue(rejected);
-    editor.insertText("(");
+    await typeText(editor, "(");
     await Promise.resolve();
     expect(console.error).toHaveBeenCalledWith("Unable to confirm completion", error);
     expect(editor.getText()).toBe("c(");

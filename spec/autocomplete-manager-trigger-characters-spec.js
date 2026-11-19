@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const path = require("path");
 const { conditionPromise, timeoutPromise, waitForAutocomplete } = require("./spec-helper");
 
@@ -42,18 +43,18 @@ describe("Autocomplete Manager trigger characters", () => {
     it("opens the list on a character the provider declared", async () => {
       registerProvider(new Set(["."]));
 
-      editor.insertText("console");
+      typeText(editor, "console");
       await timeoutPromise(200);
       expect(editorView.querySelectorAll(".autocomplete li").length).toBe(0);
 
-      editor.insertText(".");
+      typeText(editor, ".");
       await waitForAutocomplete(editor);
     });
 
     it("leaves the list closed on a character no provider declared", async () => {
       registerProvider(new Set(["."]));
 
-      editor.insertText(":");
+      typeText(editor, ":");
       await timeoutPromise(200);
       expect(editorView.querySelectorAll(".autocomplete li").length).toBe(0);
       expect(provider.requests.length).toBe(0);
@@ -62,7 +63,7 @@ describe("Autocomplete Manager trigger characters", () => {
     it("leaves the list closed when the provider declares nothing", async () => {
       registerProvider(undefined);
 
-      editor.insertText(".");
+      typeText(editor, ".");
       await timeoutPromise(200);
       expect(editorView.querySelectorAll(".autocomplete li").length).toBe(0);
       expect(provider.requests.length).toBe(0);
@@ -72,14 +73,14 @@ describe("Autocomplete Manager trigger characters", () => {
       const characters = new Set();
       registerProvider(characters);
 
-      editor.insertText(".");
+      typeText(editor, ".");
       await timeoutPromise(200);
       expect(provider.requests.length).toBe(0);
 
       // A language server advertises its trigger characters only once it has
       // started, well after the provider was registered.
       characters.add(".");
-      editor.insertText(".");
+      typeText(editor, ".");
       await waitForAutocomplete(editor);
     });
   });
@@ -90,12 +91,12 @@ describe("Autocomplete Manager trigger characters", () => {
     it("reports the trigger character and its kind", async () => {
       registerProvider(new Set(["."]));
 
-      editor.insertText("l");
+      typeText(editor, "l");
       await waitForAutocomplete(editor);
       expect(provider.requests[0].triggerKind).toBe(1);
       expect(provider.requests[0].triggerCharacter).toBeNull();
 
-      editor.insertText(".");
+      typeText(editor, ".");
       await conditionPromise(() => provider.requests.length > 1);
       const request = provider.requests[provider.requests.length - 1];
       expect(request.triggerKind).toBe(2);
@@ -106,7 +107,7 @@ describe("Autocomplete Manager trigger characters", () => {
       lumine.config.set("autocomplete.enableAutoConfirmSingleSuggestion", false);
       registerProvider(new Set(["."]));
 
-      editor.insertText(".");
+      typeText(editor, ".");
       await waitForAutocomplete(editor);
       expect(provider.requests[0].triggerKind).toBe(2);
 

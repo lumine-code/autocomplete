@@ -42,12 +42,13 @@ describe("Autocomplete detail result ownership", () => {
       };
       manager.suggestionList.changeItems([suggestion]);
       const pending = manager.getDetailsOnSelect(suggestion);
+      const resolveOriginal = release;
       if (change === "query epoch") epoch++;
       else {
         manager.cancelSuggestions();
         manager.suggestionList.changeItems([suggestion]);
       }
-      release({ text: "obsolete", description: "Old documentation" });
+      resolveOriginal({ text: "obsolete", description: "Old documentation" });
       await pending;
       expect(manager.suggestionList.items[0]).toBe(suggestion);
     });

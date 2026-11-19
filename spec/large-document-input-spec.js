@@ -1,11 +1,10 @@
 const { Point, Range, TextBuffer } = require("lumine");
 
 describe("bounded autocomplete input", () => {
-  let runtime, Manager, changes;
+  let runtime, Manager;
   beforeEach(() => {
     runtime = require("../lib/completion-runtime");
     Manager = require("../lib/autocomplete-manager");
-    changes = require("../lib/change-text");
   });
 
   function change(oldTextSource, newTextSource) {
@@ -36,38 +35,29 @@ describe("bounded autocomplete input", () => {
           getScopeDescriptor() {},
         }),
       },
-      insertedCharacterForChanges: runtime.insertedCharacterForChanges,
       bracketMatcherPairs: ["()"],
       suggestionForCommitCharacter: () => null,
-      isTriggerCharacter: () => false,
       autoActivationEnabled: true,
       suggestionList: { isActive: () => false },
-      cancelNewSuggestionsRequest: jasmine.createSpy("cancel"),
-      hideSuggestionList: jasmine.createSpy("hide"),
+      refreshAfterInput: jasmine.createSpy("refreshAfterInput"),
       getPrefix: () => "",
       cancelSuggestions: jasmine.createSpy("cancelAll"),
     };
     expect(() =>
-      Manager.prototype.processBufferChanges.call(context, [change(huge, huge)]),
+      Manager.prototype.processTextInput.call(context, {
+        kind: "insert",
+        text: "log",
+        changes: [change(huge, huge)],
+      }),
     ).not.toThrow();
-    expect(context.hideSuggestionList).toHaveBeenCalled();
+    expect(context.refreshAfterInput).toHaveBeenCalledWith(null, false);
     expect(() =>
-      Manager.prototype.processBufferChanges.call(context, [change(huge, "")]),
+      Manager.prototype.processTextInput.call(context, {
+        kind: "delete",
+        changes: [change(huge, "")],
+      }),
     ).not.toThrow();
-    expect(runtime.insertedCharacterForChanges.call(context, [change("", huge)])).toBeNull();
-    expect(runtime.insertedCharacterForChanges.call(context, [change("", "()")])).toBe("(");
-  });
-
-  it("tests indentation from chunks without flattening a change", () => {
-    const source = {
-      *chunks() {
-        yield " \t";
-        yield " ";
-      },
-      length: 3,
-    };
-    expect(changes.isIndentation(change(source, ""), "oldText")).toBeTrue();
-    expect(changes.isIndentation(change("  x", ""), "oldText")).toBeFalse();
+    expect(context.cancelSuggestions).toHaveBeenCalled();
   });
 
   it("reads only bounded prefixes and never substitutes the tail of an oversized word", () => {

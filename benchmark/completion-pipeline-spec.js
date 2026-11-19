@@ -4,6 +4,8 @@ const crypto = require("node:crypto");
 describe("Completion pipeline performance", () => {
   it("measures real provider requests through first popup layout", async () => {
     jasmine.useRealClock();
+    const textGrammarPackage = await lumine.packages.activatePackage("language-text");
+    await textGrammarPackage.resourceLoadPromise;
     const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
     const until = async (predicate) => {
       const deadline = performance.now() + 10000;

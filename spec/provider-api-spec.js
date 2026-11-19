@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const {
   waitForAutocomplete,
   triggerAutocompletion,
@@ -401,8 +402,8 @@ describe("Provider API", () => {
           testProvider,
         );
 
-        editor.insertText("o");
-        editor.insertText("k");
+        typeText(editor, "o");
+        typeText(editor, "k");
         await waitForAutocomplete(editor);
 
         expect(getSuggestions()).toEqual([{ text: "ok" }, { text: "okwow" }]);
@@ -429,7 +430,7 @@ describe("Provider API", () => {
           testProvider,
         );
 
-        editor.insertText("h");
+        typeText(editor, "h");
         await waitForAutocomplete(editor);
 
         expect(getSuggestions()).toEqual([
@@ -464,9 +465,9 @@ describe("Provider API", () => {
           testProvider,
         );
 
-        editor.insertText("s");
-        editor.insertText("f");
-        editor.insertText("n");
+        typeText(editor, "s");
+        typeText(editor, "f");
+        typeText(editor, "n");
         await waitForAutocomplete(editor);
 
         expect(getSuggestions()[0]).toEqual({ text: "sfn" });
@@ -492,8 +493,8 @@ describe("Provider API", () => {
           testProvider,
         );
 
-        editor.insertText("f");
-        editor.insertText("o");
+        typeText(editor, "f");
+        typeText(editor, "o");
         await waitForAutocomplete(editor);
 
         expect(getSuggestions()).toEqual([{ text: "@@@" }]);
@@ -518,8 +519,8 @@ describe("Provider API", () => {
           testProvider,
         );
 
-        editor.insertText("o");
-        editor.insertText("p");
+        typeText(editor, "o");
+        typeText(editor, "p");
         await waitForAutocomplete(editor);
 
         expect(getSuggestions()).toEqual([{ text: "opAlpha" }, { text: "opBeta" }]);
@@ -549,8 +550,8 @@ describe("Provider API", () => {
           testProvider,
         );
 
-        editor.insertText("o");
-        editor.insertText("k");
+        typeText(editor, "o");
+        typeText(editor, "k");
         await waitForAutocomplete(editor);
 
         expect(getSuggestions()).toEqual([{ text: "okay" }]);
@@ -575,8 +576,8 @@ describe("Provider API", () => {
           testProvider,
         );
 
-        editor.insertText("h");
-        editor.insertText(" ");
+        typeText(editor, "h");
+        typeText(editor, " ");
         await waitForAutocomplete(editor);
 
         expect(getSuggestions()).toEqual([{ text: "ohai" }, { text: "hai" }, { text: "okwow" }]);
@@ -762,7 +763,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("hello, world\n");
+      typeText(editor, "hello, world\n");
       await triggerAutocompletion();
       await confirmChoice(0);
 
@@ -799,7 +800,7 @@ describe("Provider API", () => {
           "1.0.0",
           testProvider,
         );
-        editor.insertText("foololohai");
+        typeText(editor, "foololohai");
         await triggerAutocompletion();
 
         // Because we're pruning results whose first characters do not match
@@ -844,7 +845,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("foololohai");
+      typeText(editor, "foololohai");
       await triggerAutocompletion();
 
       // Because we are applying true fuzzy search to all suggestions, only
@@ -907,7 +908,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("hello, world\n");
+      typeText(editor, "hello, world\n");
 
       await triggerAutocompletion();
       await confirmChoice(0);
@@ -942,7 +943,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("hello, world\n");
+      typeText(editor, "hello, world\n");
 
       await triggerAutocompletion();
       await confirmChoice(0);
@@ -980,7 +981,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("hello, world\n");
+      typeText(editor, "hello, world\n");
 
       await triggerAutocompletion();
       await confirmChoice(0);
@@ -1016,7 +1017,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("\nlorem\nhello, world\ndolor\n");
+      typeText(editor, "\nlorem\nhello, world\ndolor\n");
 
       await triggerAutocompletion();
       await confirmChoice(0);
@@ -1062,7 +1063,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("\nlorem\nhello, world\ndolor\n");
+      typeText(editor, "\nlorem\nhello, world\ndolor\n");
 
       await triggerAutocompletion();
       await confirmChoice(0);
@@ -1112,7 +1113,7 @@ describe("Provider API", () => {
         "1.0.0",
         testProvider,
       );
-      editor.insertText("\nlorem\nhello, world\ndolor\n");
+      typeText(editor, "\nlorem\nhello, world\ndolor\n");
 
       await triggerAutocompletion();
       await confirmChoice(0);

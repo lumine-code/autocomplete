@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const { conditionPromise, waitForAutocomplete } = require("./spec-helper");
 const path = require("path");
 
@@ -44,7 +45,7 @@ describe("Autocomplete", () => {
     it("removes all autocomplete views", async () => {
       // Trigger an autocompletion
       editor.moveToBottom();
-      editor.insertText("A");
+      typeText(editor, "A");
 
       await waitForAutocomplete(editor);
 

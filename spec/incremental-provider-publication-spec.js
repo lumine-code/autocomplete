@@ -109,6 +109,99 @@ describe("Incremental completion provider publication", () => {
     expect(manager.suggestionList.items.map(({ text }) => text)).toEqual(["alpha", "atlas"]);
   });
 
+  it("updates a frozen standalone edit and keeps its selection by provider id", async () => {
+    const slow = deferred();
+    const edit = Object.freeze({
+      id: "edit",
+      displayText: "alpha",
+      textEdit: Object.freeze({
+        range: [
+          [0, 0],
+          [0, 1],
+        ],
+        newText: "",
+      }),
+    });
+    const source = provider(
+      ({ publishSuggestions }) => {
+        publishSuggestions(Object.freeze([edit, { text: "atlas" }]));
+        return slow.promise;
+      },
+      { filterSuggestions: true },
+    );
+    const pending = request();
+    await visible("atlas");
+    const list = manager.suggestionList;
+    list.setSelectedIndex(list.displayedItems.findIndex(({ id }) => id === "edit"));
+    const { publishSuggestions } = source.getSuggestions.calls.mostRecent().args[0];
+    publishSuggestions([{ text: "atlas" }, { ...edit, displayText: "alpine" }]);
+    await conditionPromise(() => list.getSelectedItem()?.displayText === "alpine");
+    expect(list.hasExplicitSelection()).toBeTrue();
+    expect(list.getSelectedItem().textEdit.newText).toBe("");
+    expect("provider" in edit).toBeFalse();
+    slow.resolve(null);
+    await pending;
+  });
+
+  it("retains same-label items whose additional edits differ", async () => {
+    lumine.config.set("autocomplete.similarSuggestionRemoval", "textOrSnippet");
+    provider(() =>
+      ["one", "two"].map((module) => ({
+        text: "alpha",
+        displayText: "alpha",
+        additionalTextEdits: [
+          {
+            range: [
+              [0, 0],
+              [0, 0],
+            ],
+            newText: `import ${module}\n`,
+          },
+        ],
+      })),
+    );
+    await request();
+    expect(manager.suggestionList.items.map((item) => item.additionalTextEdits[0].newText)).toEqual(
+      ["import one\n", "import two\n"],
+    );
+  });
+
+  it("finishes a request when a pending provider registration disappears", async () => {
+    const slow = deferred();
+    provider(() => [{ text: "alpha" }]);
+    const disconnected = provider(() => slow.promise);
+    const pending = request();
+    await visible("alpha");
+    const { signal } = disconnected.getSuggestions.calls.mostRecent().args[0];
+    registrations.at(-1).dispose();
+    await pending;
+    expect(signal.aborted).toBeTrue();
+    expect(manager.suggestionList.items.map(({ text }) => text)).toEqual(["alpha"]);
+  });
+
+  it("cannot republish ready rows from a disconnected provider", async () => {
+    const slow = deferred();
+    provider(() => [{ text: "alpha" }]);
+    provider(() => slow.promise);
+    const pending = request();
+    await visible("alpha");
+    registrations[0].dispose();
+    slow.resolve([{ text: "atlas" }]);
+    await pending;
+    expect(manager.suggestionList.items.map(({ text }) => text)).toEqual(["atlas"]);
+  });
+
+  it("supplies a trigger character only to providers that declared it", async () => {
+    const triggered = provider(() => [{ text: "alpha" }], { triggerCharacters: new Set(["."]) });
+    const invoked = provider(() => [{ text: "atlas" }]);
+    manager.triggerCharacter = ".";
+    await request();
+    const first = triggered.getSuggestions.calls.mostRecent().args[0];
+    const second = invoked.getSuggestions.calls.mostRecent().args[0];
+    expect([first.triggerKind, first.triggerCharacter]).toEqual([2, "."]);
+    expect([second.triggerKind, second.triggerCharacter]).toEqual([1, null]);
+  });
+
   it("never publishes a ready provider excluded by a pending provider's inclusion priority", async () => {
     const slow = deferred();
     provider(() => slow.promise, { inclusionPriority: 20 });
@@ -287,14 +380,14 @@ describe("Incremental completion provider publication", () => {
       ],
     };
     detail.resolve(resolved);
-    await manager.pendingDetails.get(initial);
+    const normalized = await manager.pendingDetails.get(initial);
     const view = manager.suggestionList.suggestionListElement;
     view.setSelectedIndex(0);
     const callsBefore = fast.getSuggestionDetailsOnSelect.calls.count();
     slow.resolve([{ text: "atlas" }]);
     await pending;
-    expect(view.getSelectedItem()).toBe(resolved);
-    expect(view.getSelectedItem().additionalTextEdits).toEqual(resolved.additionalTextEdits);
+    expect(view.getSelectedItem()).toBe(normalized);
+    expect(view.getSelectedItem().additionalTextEdits[0].newText).toBe("import value\n");
     expect(fast.getSuggestionDetailsOnSelect.calls.count()).toBe(callsBefore);
   });
 
@@ -302,18 +395,21 @@ describe("Incremental completion provider publication", () => {
     const slow = deferred(),
       detail = deferred();
     provider(() => slow.promise);
-    const initial = { text: "alpha" },
+    const initial = Object.freeze({ text: "alpha" }),
       cached = Object.freeze([initial]);
-    provider(() => cached, { getSuggestionDetailsOnSelect: () => detail.promise });
+    const resolveDetails = jasmine.createSpy("detail").and.returnValue(detail.promise);
+    provider(() => cached, { getSuggestionDetailsOnSelect: resolveDetails });
     const pending = request();
     await visible("alpha");
     const resolved = { ...initial, description: "Resolved" };
     detail.resolve(resolved);
-    await manager.pendingDetails.get(initial);
+    const normalized = await manager.pendingDetails.get(manager.suggestionList.items[0]);
+    expect(resolveDetails.calls.first().args[0]).toBe(initial);
     expect(cached[0]).toBe(initial);
     slow.resolve([{ text: "atlas" }]);
     await pending;
-    expect(manager.suggestionList.items).toContain(resolved);
+    expect(manager.suggestionList.items).toContain(normalized);
+    expect(normalized.description).toBe("Resolved");
     expect(cached[0]).toBe(initial);
   });
 
@@ -335,9 +431,10 @@ describe("Incremental completion provider publication", () => {
     await pending;
     const resolved = { ...chosen, description: "Selected definition" };
     detail.resolve(resolved);
-    await manager.pendingDetails.get(chosen);
-    expect(view.getSelectedItem()).toBe(resolved);
-    expect(view.descriptionSelection.item).toBe(resolved);
+    const normalized = await manager.pendingDetails.get(chosen);
+    expect(view.getSelectedItem()).toBe(normalized);
+    expect(view.descriptionSelection.item).toBe(normalized);
+    expect(normalized.description).toBe("Selected definition");
     expect(view.selectedIndex).toBe(1);
   });
 
@@ -456,26 +553,31 @@ describe("Incremental completion provider publication", () => {
     expect(manager.suggestionList.isActive()).toBe(false);
   });
 
-  it("rejects a real provider error after partial publication and cancels remaining providers", async () => {
+  it("isolates a provider error after partial publication and lets other providers finish", async () => {
     const bad = deferred(),
       sibling = deferred();
-    let signal;
-    provider(() => bad.promise);
+    let signal, failedSignal;
+    provider((options) => {
+      failedSignal = options.signal;
+      return bad.promise;
+    });
     provider((options) => {
       signal = options.signal;
       return sibling.promise;
     });
     provider(() => [{ text: "alpha" }]);
+    spyOn(console, "error");
     const pending = request();
     await visible("alpha");
     const error = new Error("Provider failed");
     bad.reject(error);
-    await expectAsync(pending).toBeRejectedWith(error);
-    expect(signal.aborted).toBe(true);
-    expect(manager.suggestionList.isActive()).toBe(false);
+    await conditionPromise(() => failedSignal.aborted);
+    expect(signal.aborted).toBeFalse();
+    expect(manager.suggestionList.isActive()).toBeTrue();
     sibling.resolve([{ text: "atlas" }]);
-    await Promise.resolve();
-    expect(manager.suggestionList.items?.some((item) => item.text === "atlas")).not.toBe(true);
+    await pending;
+    expect(console.error).toHaveBeenCalledWith("Unable to read completion provider", error);
+    expect(manager.suggestionList.items.map(({ text }) => text)).toEqual(["atlas", "alpha"]);
   });
 
   it("owns a failed partial publication without waiting for an unfinished provider", async () => {

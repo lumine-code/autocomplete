@@ -1,5 +1,10 @@
 describe("Completion match ownership", () => {
   let matches, editor;
+  const requestOwner = (options) => {
+    const { captureCompletionContext, isCompletionContextCurrent } =
+      require("../lib/autocomplete-manager").prototype;
+    return { editor, captureCompletionContext, isCompletionContextCurrent, ...options };
+  };
   beforeEach(async () => {
     const textGrammarPackage = await lumine.packages.activatePackage("language-text");
     await textGrammarPackage.resourceLoadPromise;
@@ -72,14 +77,13 @@ describe("Completion match ownership", () => {
         return pending;
       },
     };
-    const owner = {
-      editor,
+    const owner = requestOwner({
       editorLabels: [],
       providerManager: { applicableProviders: () => [provider] },
       filterSuggestions: jasmine.createSpy("obsolete ranking"),
       displaySuggestions: jasmine.createSpy("obsolete presentation"),
       mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
-    };
+    });
     const result = runtime.getSuggestionsFromProviders.call(owner, {
       editor: owner.editor,
       prefix: "a",
@@ -95,8 +99,7 @@ describe("Completion match ownership", () => {
   it("releases completed requests without cancelling them on the next request", async () => {
     const runtime = require("../lib/completion-runtime");
     const signals = [];
-    const owner = {
-      editor,
+    const owner = requestOwner({
       editorLabels: [],
       providerManager: {
         applicableProviders: () => [
@@ -110,7 +113,7 @@ describe("Completion match ownership", () => {
       },
       displaySuggestions: () => {},
       mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
-    };
+    });
     for (const prefix of ["a", "ab", "abc"]) {
       await runtime.getSuggestionsFromProviders.call(owner, { editor: owner.editor, prefix });
       expect(owner.suggestionAbortController).toBeNull();
@@ -130,8 +133,7 @@ describe("Completion match ownership", () => {
     const pendingAnswer = new Promise((resolve) => {
       answer = resolve;
     });
-    const owner = {
-      editor,
+    const owner = requestOwner({
       providerManager: {
         applicableProviders: () => [
           {
@@ -147,7 +149,7 @@ describe("Completion match ownership", () => {
               publishing();
             })
           : undefined,
-    };
+    });
     const first = runtime.getSuggestionsFromProviders.call(owner, {
       editor: owner.editor,
       prefix: "a",
@@ -170,16 +172,17 @@ describe("Completion match ownership", () => {
   });
 
   for (const synchronous of [true, false]) {
-    it(`cancels siblings and releases a ${synchronous ? "throwing" : "rejecting"} request`, async () => {
+    it(`releases a ${synchronous ? "throwing" : "rejecting"} provider without cancelling its sibling`, async () => {
       const runtime = require("../lib/completion-runtime");
-      let siblingSignal;
+      let siblingSignal, releaseSibling, notifyFailure;
+      const failed = new Promise((resolve) => (notifyFailure = resolve));
       const error = new Error("provider failed");
-      const owner = {
-        editor,
+      const owner = requestOwner({
         providerManager: {
           applicableProviders: () => [
             {
-              getSuggestions() {
+              getSuggestions({ signal }) {
+                signal.addEventListener("abort", notifyFailure, { once: true });
                 if (synchronous) throw error;
                 return Promise.reject(error);
               },
@@ -187,49 +190,54 @@ describe("Completion match ownership", () => {
             {
               getSuggestions({ signal }) {
                 siblingSignal = signal;
-                return new Promise((resolve) =>
-                  signal.addEventListener("abort", () => resolve([]), { once: true }),
-                );
+                return new Promise((resolve) => (releaseSibling = resolve));
               },
             },
           ],
         },
         mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
         displaySuggestions: jasmine.createSpy("failed publication"),
-      };
-      await expectAsync(
-        runtime.getSuggestionsFromProviders.call(owner, { editor: owner.editor, prefix: "a" }),
-      ).toBeRejectedWith(error);
-      expect(siblingSignal.aborted).toBeTrue();
+      });
+      spyOn(console, "error");
+      const pending = runtime.getSuggestionsFromProviders.call(owner, {
+        editor: owner.editor,
+        prefix: "a",
+      });
+      await failed;
+      expect(siblingSignal.aborted).toBeFalse();
+      releaseSibling([{ text: "abc" }]);
+      await pending;
       expect(owner.suggestionAbortController).toBeNull();
-      expect(owner.displaySuggestions).not.toHaveBeenCalled();
+      expect(owner.displaySuggestions.calls.mostRecent().args[0][0].text).toBe("abc");
+      expect(console.error).toHaveBeenCalledWith("Unable to read completion provider", error);
     });
   }
 
   it("does not let a late response overwrite the prefix of a reused current suggestion", async () => {
     const runtime = require("../lib/completion-runtime");
-    const suggestion = { text: "abc" };
+    const suggestion = Object.freeze({ text: "abc" });
     let release;
     const pending = new Promise((resolve) => (release = resolve));
     const provider = {
       getSuggestions: (options) => (options.prefix === "a" ? pending : [suggestion]),
     };
-    const owner = {
-      editor,
+    const owner = requestOwner({
       editorLabels: [],
       providerManager: { applicableProviders: () => [provider] },
       displaySuggestions: jasmine.createSpy("current presentation"),
       mergeSuggestionsFromProviders: runtime.mergeSuggestionsFromProviders,
-    };
+    });
     const oldRequest = runtime.getSuggestionsFromProviders.call(owner, {
       editor: owner.editor,
       prefix: "a",
     });
     await runtime.getSuggestionsFromProviders.call(owner, { editor: owner.editor, prefix: "ab" });
-    expect(suggestion.replacementPrefix).toBe("ab");
+    const shown = owner.displaySuggestions.calls.mostRecent().args[0][0];
+    expect(shown.replacementPrefix).toBe("ab");
     release([suggestion]);
     await oldRequest;
-    expect(suggestion.replacementPrefix).toBe("ab");
+    expect("replacementPrefix" in suggestion).toBeFalse();
+    expect(shown.replacementPrefix).toBe("ab");
     expect(owner.displaySuggestions).toHaveBeenCalledTimes(1);
   });
 

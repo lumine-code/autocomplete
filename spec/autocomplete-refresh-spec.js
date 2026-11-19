@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 describe("Autocomplete documentation during refresh", () => {
   let editor, editorView, mainModule, manager, view, provider, registration, details;
   let workspaceElement, workspaceHeight;
@@ -11,7 +12,7 @@ describe("Autocomplete documentation during refresh", () => {
     }
   };
   const type = async (text) => {
-    editor.insertText(text);
+    typeText(editor, text);
     await manager.findSuggestions.calls.mostRecent().returnValue;
     view = manager.suggestionList.suggestionListElement;
     await frames();
@@ -47,7 +48,7 @@ describe("Autocomplete documentation during refresh", () => {
     editor = await lumine.workspace.open("");
     editorView = lumine.views.getView(editor);
     editorView.setUpdatedSynchronously(false);
-    editor.insertText("\n".repeat(200));
+    typeText(editor, "\n".repeat(200));
     editor.scrollToCursorPosition();
     editorView.focus();
     mainModule = (await lumine.packages.activatePackage("autocomplete")).mainModule;
@@ -119,7 +120,7 @@ describe("Autocomplete documentation during refresh", () => {
 
       expect(details.length).toBe(2);
       expect(manager.suggestionList.items[0].descriptionMarkdown).toBeUndefined();
-      expect(manager.suggestionList.items[0].textEdit.range[1].column).toBe(2);
+      expect(manager.suggestionList.items[0].textEdit.range.end.column).toBe(2);
       expect(samples.length).toBeGreaterThan(1);
       for (const entry of samples) {
         expect(entry.visible).toBe("block");
@@ -326,7 +327,7 @@ describe("Autocomplete documentation during refresh", () => {
       return { entries, stop: () => cancelAnimationFrame(frame) };
     };
     const beginTyping = async () => {
-      editor.insertText("k");
+      typeText(editor, "k");
       await manager.findSuggestions.calls.mostRecent().returnValue;
       view = manager.suggestionList.suggestionListElement;
     };

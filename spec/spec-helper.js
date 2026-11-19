@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 beforeEach(() => {
   spyOn(lumine.views, "readDocument").and.callFake((fn) => fn());
   spyOn(lumine.views, "updateDocument").and.callFake((fn) => fn());
@@ -31,7 +32,7 @@ let triggerAutocompletion = (editor, moveCursor = true, char = "f") => {
     editor.moveToBottom();
     editor.moveToBeginningOfLine();
   }
-  editor.insertText(char);
+  typeText(editor, char);
 };
 
 async function waitForDeferredSuggestions(editorView, totalSuggestions) {

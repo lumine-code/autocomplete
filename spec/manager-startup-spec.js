@@ -13,6 +13,9 @@ describe("the autocomplete manager bootstrap", () => {
       prepare() {}
       initialize() {}
       dispose() {}
+      onDidRemoveProvider() {
+        return new Disposable();
+      }
     }
     class SuggestionList {
       initialize() {}
@@ -96,13 +99,27 @@ describe("the autocomplete manager bootstrap", () => {
     manager.confirm();
     expect(commands).toContain("autocomplete:activate");
     expect(runtimeLoads).toBe(0);
-    manager.showOrHideSuggestionListForBufferChanges({ changes: [], origin: "reload" });
+    manager.didChangeBuffer({ origin: "reload" });
     manager.dispose();
     expect(runtimeLoads).toBe(0);
     manager = new isolatedModule.exports();
     manager.initialize();
-    manager.editor = { getGrammar: () => ({ scopeName: "text.plain" }) };
-    manager.buffer = {};
+    const mode = {};
+    const buffer = {
+      getLanguageMode: () => mode,
+      getTextRevision: () => 0,
+      getPath: () => null,
+    };
+    const cursor = { getBufferPosition: () => ({ isEqual: () => true }) };
+    manager.editor = {
+      getBuffer: () => buffer,
+      getGrammar: () => ({ scopeName: "text.plain" }),
+      getLastCursor: () => cursor,
+      getSelectedBufferRanges: () => [],
+      isReadOnly: () => false,
+      isDestroyed: () => false,
+    };
+    manager.buffer = buffer;
     const publicRequest = manager.findSuggestions;
     const pending = manager.findSuggestions(true);
     expect(runtimeLoads).toBe(0);

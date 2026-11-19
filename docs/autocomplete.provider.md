@@ -90,213 +90,212 @@ type SuggestionType =
  * A single suggestion as returned by `getSuggestions` or
  * `getSuggestionDetailsOnSelect`.
  */
-type Suggestion =
-  | ({
-      // A suggestion can be inserted one of several ways: as plain text, as a
-      // snippet, or as a `TextEdit`. One of these three properties is therefore
-      // required; the others are optional.
-      //
-      // Of these three, later properties win out over earlier ones. For example,
-      // `textEdit` will be preferred over both `snippet` and `text` if it is
-      // present.
+type Suggestion = {
+  /** Stable identity within this provider's request. Optional. Reuse it for the same item in cumulative updates. */
+  id?: string | number;
 
-      /**
-       * The text to be inserted. Will be used if `snippet` is absent.
-       */
-      text?: string;
+  // A suggestion can be inserted one of several ways: as plain text, as a
+  // snippet, or as a `TextEdit`. One of these three properties is therefore
+  // required; the others are optional.
+  //
+  // Of these three, later properties win out over earlier ones. For example,
+  // `textEdit` will be preferred over both `snippet` and `text` if it is
+  // present.
 
-      /**
-       * A snippet to insert upon suggestion selection.
-       */
-      snippet?: string;
+  /**
+   * The text to be inserted. Will be used if `snippet` is absent.
+   */
+  text?: string;
 
-      /**
-       * Text edit to make when the item is chosen. Use this when you want to be
-       * specific about which range of the buffer is replaced. When present, this
-       * will be used as the insertion strategy instead of the default behavior.
-       *
-       * If a suggestion needs to make several edits upon insertion, the rest can
-       * be specified via `additionalTextEdits`.
-       *
-       */
-      textEdit?: TextEdit;
+  /**
+   * A snippet to insert upon suggestion selection.
+   */
+  snippet?: string;
 
-      /**
-       * The text to show in the menu for this suggestion. Optional; falls back to
-       * `snippet`, then `text`.
-       */
-      displayText?: string;
+  /**
+   * Text edit to make when the item is chosen. Use this when you want to be
+   * specific about which range of the buffer is replaced. When present, this
+   * will be used as the insertion strategy instead of the default behavior.
+   *
+   * If a suggestion needs to make several edits upon insertion, the rest can
+   * be specified via `additionalTextEdits`.
+   *
+   */
+  textEdit?: TextEdit;
 
-      /**
-       * A dimmed detail rendered immediately after the displayed text, in the
-       * same cell — typically a signature such as `(a: number): string`. Always
-       * treated as plain text.
-       */
-      displayTextDetail?: string;
+  /**
+   * The text to show in the menu for this suggestion. Optional; falls back to
+   * `snippet`, then `text`, then the replacement text of a standalone
+   * `textEdit`. A standalone deletion can supply the name of the action.
+   */
+  displayText?: string;
 
-      /**
-       * A list of `Range`s to replace when inserting the text. Each `Range`present
-       * in this list will result in one insertion of the suggestion's textor
-       * snippet.
-       *
-       * Can insert the autocompletion's text/snippet into one specific range or
-       * multiple. Use this when you know the exact range of the current buffer
-       * that should be replaced with the given text.
-       *
-       * Has no effect if `textEdit` is specified.
-       */
-      ranges?: Range[];
+  /**
+   * A dimmed detail rendered immediately after the displayed text, in the
+   * same cell — typically a signature such as `(a: number): string`. Always
+   * treated as plain text.
+   */
+  displayTextDetail?: string;
 
-      /**
-       * Text before the cursor that should be replaced as part of the insertion of
-       * this suggestion. Optional; if omitted, the prefix before the cursor will
-       * be used. Has no effect if `textEdit` or `ranges` is specified.
-       */
-      replacementPrefix?: string;
+  /**
+   * A list of `Range`s to replace when inserting the text. Each `Range`present
+   * in this list will result in one insertion of the suggestion's textor
+   * snippet.
+   *
+   * Can insert the autocompletion's text/snippet into one specific range or
+   * multiple. Use this when you know the exact range of the current buffer
+   * that should be replaced with the given text.
+   *
+   * Has no effect if `textEdit` is specified.
+   */
+  ranges?: Range[];
 
-      /**
-       * What the typed prefix is scored against, when that is not the text the
-       * user reads. Falls back to `displayText`, then `text`, then `snippet`.
-       *
-       * Only consulted when the provider sets `filterSuggestions`.
-       */
-      filterText?: string;
+  /**
+   * Text before the cursor that should be replaced as part of the insertion of
+   * this suggestion. Optional; if omitted, the prefix before the cursor will
+   * be used. Has no effect if `textEdit` or `ranges` is specified.
+   */
+  replacementPrefix?: string;
 
-      /**
-       * The provider's own relevance ordering, compared as an opaque string —
-       * the Language Server Protocol field of the same name. It breaks ties
-       * between suggestions that answer the typed prefix equally well; it
-       * never outranks the prefix itself.
-       */
-      sortText?: string;
+  /**
+   * What the typed prefix is scored against, when that is not the text the
+   * user reads. Falls back to `displayText`, then `text`, then `snippet`.
+   *
+   * Only consulted when the provider sets `filterSuggestions`.
+   */
+  filterText?: string;
 
-      /**
-       * Nominates this suggestion as the one to start on rather than the first
-       * in the list. It remains the *default* selection, so confirming it with
-       * a key bound to confirm-if-non-default still passes the key through.
-       *
-       * The first preselected suggestion wins if several are marked.
-       */
-      preselect?: boolean;
+  /**
+   * The provider's own relevance ordering, compared as an opaque string —
+   * the Language Server Protocol field of the same name. It breaks ties
+   * between suggestions that answer the typed prefix equally well; it
+   * never outranks the prefix itself.
+   */
+  sortText?: string;
 
-      /**
-       * How inserted text should be indented, following LSP `InsertTextMode`:
-       * `1` inserts it exactly as written, `2` re-indents it to match the line
-       * it lands on.
-       *
-       * Only meaningful for an insertion spanning several lines. A snippet is
-       * re-indented by default, so pass `1` to keep a body the provider has
-       * already laid out; plain text is left alone by default, so pass `2` to
-       * have it adjusted.
-       */
-      insertTextMode?: 1 | 2;
+  /**
+   * Nominates this suggestion as the one to start on rather than the first
+   * in the list. It remains the *default* selection, so confirming it with
+   * a key bound to confirm-if-non-default still passes the key through.
+   *
+   * The first preselected suggestion wins if several are marked.
+   */
+  preselect?: boolean;
 
-      /**
-       * A "type" for this suggestion. Used to classify suggestions and distinguish
-       * them visually. The types of {@link SuggestionType} are preferred (and have
-       * predefined styles), but you can use an arbitrary string if none of those
-       * types suffice.
-       */
-      type?: SuggestionType | string;
+  /**
+   * How inserted text should be indented, following LSP `InsertTextMode`:
+   * `1` inserts it exactly as written, `2` re-indents it to match the line
+   * it lands on.
+   *
+   * Only meaningful for an insertion spanning several lines. A snippet is
+   * re-indented by default, so pass `1` to keep a body the provider has
+   * already laid out; plain text is left alone by default, so pass `2` to
+   * have it adjusted.
+   */
+  insertTextMode?: 1 | 2;
 
-      /**
-       * Text edits to make when the item is chosen — in addition to the main item.
-       *
-       * These are typically optional edits, such as an automatic `import`
-       * statement that's inserted when a suggestion warrants it.
-       *
-       * When present, these edits are made in all code paths, regardless of the
-       * original insertion strategy.
-       *
-       */
-      additionalTextEdits?: TextEdit[];
+  /**
+   * A "type" for this suggestion. Used to classify suggestions and distinguish
+   * them visually. The types of {@link SuggestionType} are preferred (and have
+   * predefined styles), but you can use an arbitrary string if none of those
+   * types suffice.
+   */
+  type?: SuggestionType | string;
 
-      /**
-       * A label to display before the suggestion. This can indicate useful
-       * information like a method return type. Both text and HTML variants are
-       * supported; `leftLabelHTML` takes precedence over `leftLabel` when both are
-       * present.
-       */
-      leftLabel?: string;
-      leftLabelHTML?: string;
+  /**
+   * Text edits to make when the item is chosen — in addition to the main item.
+   *
+   * These are typically optional edits, such as an automatic `import`
+   * statement that's inserted when a suggestion warrants it.
+   *
+   * When present, these edits are made in all code paths, regardless of the
+   * original insertion strategy.
+   *
+   */
+  additionalTextEdits?: TextEdit[];
 
-      /**
-       * A label to display after the suggestion. This can indicate useful
-       * information like a type annotation. Both text and HTML variants are
-       * supported; `rightLabelHTML` takes precedence over `rightLabel` when both
-       * are present.
-       */
-      rightLabel?: string;
-      rightLabelHTML?: string;
+  /**
+   * A label to display before the suggestion. This can indicate useful
+   * information like a method return type. Both text and HTML variants are
+   * supported; `leftLabelHTML` takes precedence over `leftLabel` when both are
+   * present.
+   */
+  leftLabel?: string;
+  leftLabelHTML?: string;
 
-      /**
-       * Class name to add to the suggestion's row in the HTML. Allows for further
-       * styling customization, if needed.
-       */
-      className?: string;
+  /**
+   * A label to display after the suggestion. This can indicate useful
+   * information like a type annotation. Both text and HTML variants are
+   * supported; `rightLabelHTML` takes precedence over `rightLabel` when both
+   * are present.
+   */
+  rightLabel?: string;
+  rightLabelHTML?: string;
 
-      /**
-       * An override to allow you to specify your own icon. Should follow Octicon
-       * conventions; e.g., `"<i class="icon-move-right"></i>"`. Optional.
-       */
-      iconHTML?: string;
+  /**
+   * Class name to add to the suggestion's row in the HTML. Allows for further
+   * styling customization, if needed.
+   */
+  className?: string;
 
-      /**
-       * A docstring summary or short description of the suggestion. When
-       * specified, it will be displayed at the bottom of the suggestions list.
-       * Optional.
-       */
-      description?: string;
+  /**
+   * An override to allow you to specify your own icon. Should follow Octicon
+   * conventions; e.g., `"<i class="icon-move-right"></i>"`. Optional.
+   */
+  iconHTML?: string;
 
-      /**
-       * The same summary written in Markdown. Takes precedence over
-       * `description` when both are present: it is rendered and sanitized, and
-       * fenced code blocks are syntax highlighted.
-       */
-      descriptionMarkdown?: string;
+  /**
+   * A docstring summary or short description of the suggestion. When
+   * specified, it will be displayed at the bottom of the suggestions list.
+   * Optional.
+   */
+  description?: string;
 
-      /**
-       * Optionally renders a Markdown code fence containing a descriptive
-       * signature rather than valid source. Return a fresh element with no
-       * resources needing disposal, or null for the normal grammar renderer.
-       * Failed callbacks fall back too; stale results after selection changes
-       * or dismissal are discarded.
-       */
-      descriptionCodeBlockRenderer?(block: {
-        text: string;
-        language: string | undefined;
-        scopeName: string;
-      }): HTMLElement | null | Promise<HTMLElement | null>;
+  /**
+   * The same summary written in Markdown. Takes precedence over
+   * `description` when both are present: it is rendered and sanitized, and
+   * fenced code blocks are syntax highlighted.
+   */
+  descriptionMarkdown?: string;
 
-      /**
-       * A url to the documentation or more information about this suggestion. When
-       * specified, a `More…` link will be displayed in the description area.
-       */
-      descriptionMoreURL?: string;
+  /**
+   * Optionally renders a Markdown code fence containing a descriptive
+   * signature rather than valid source. Return a fresh element with no
+   * resources needing disposal, or null for the normal grammar renderer.
+   * Failed callbacks fall back too; stale results after selection changes
+   * or dismissal are discarded.
+   */
+  descriptionCodeBlockRenderer?(block: {
+    text: string;
+    language: string | undefined;
+    scopeName: string;
+  }): HTMLElement | null | Promise<HTMLElement | null>;
 
-      /**
-       * A list of indices where the characters in the prefix appear in this
-       * suggestion's text.
-       * @type {Object}
-       */
-      characterMatchIndices?: number[];
+  /**
+   * A url to the documentation or more information about this suggestion. When
+   * specified, a `More…` link will be displayed in the description area.
+   */
+  descriptionMoreURL?: string;
 
-      /**
-       * Single characters that accept this suggestion when typed while it is
-       * highlighted. The character is inserted after the suggestion, so typing
-       * `(` on a highlighted `console` yields `console(`.
-       *
-       * Honoured only when the `autocomplete.commitCharacters` setting is on,
-       * which it is not by default. For a snippet suggestion the character
-       * lands wherever the expansion left the cursor, which is its first tab
-       * stop rather than the end of the inserted text.
-       */
-      commitCharacters?: string[];
+  /**
+   * A list of indices where the characters in the prefix appear in this
+   * suggestion's text.
+   * @type {Object}
+   */
+  characterMatchIndices?: number[];
 
-      // (Either `text`, `snippet`, or `textEdit` must be provided.)
-    } & { text: string })
-  | { snippet: string }
-  | { textEdit: TextEdit };
+  /**
+   * Single characters that accept this suggestion when typed while it is
+   * highlighted. The character is inserted after the suggestion, so typing
+   * `(` on a highlighted `console` yields `console(`.
+   *
+   * Honoured only when the `autocomplete.commitCharacters` setting is on,
+   * which it is not by default. For a snippet suggestion the character
+   * lands wherever the expansion left the cursor, which is its first tab
+   * stop rather than the end of the inserted text.
+   */
+  commitCharacters?: string[];
+} & ({ text: string } | { snippet: string } | { textEdit: TextEdit });
 
 /**
  * The provider object that you should make available to `autocomplete`.
@@ -393,6 +392,13 @@ type ServiceProvider = {
      */
     signal: AbortSignal;
     /**
+     * Replaces this provider's current results during a pending request.
+     * Pass the whole list published so far. Leave the returned promise
+     * pending while additional results are expected. A final array replaces
+     * the last update; returning null retains it.
+     */
+    publishSuggestions(suggestions: Suggestion[]): void;
+    /**
      * Optionally publish a cumulative suggestion list while the final result
      * is pending. Each list replaces this provider's previous interim list.
      * Return the complete list when finished.
@@ -420,7 +426,7 @@ type ServiceProvider = {
      * was.
      */
     triggerCharacter: string | null;
-  }): Suggestion[] | Promise<Suggestion[]>;
+  }): Suggestion[] | null | undefined | Promise<Suggestion[] | null | undefined>;
 
   /**
    * Fills in further details on this suggestion when it is highlighted in the
@@ -429,17 +435,20 @@ type ServiceProvider = {
    * A language server can use this method to send `completionItem/resolve` and
    * return an updated suggestion with the new data.
    */
-  getSuggestionDetailsOnSelect?(suggestion: Suggestion): Promise<Suggestion>;
+  getSuggestionDetailsOnSelect?(
+    suggestion: Suggestion,
+    context: { signal: AbortSignal },
+  ): Partial<Suggestion> | null | Promise<Partial<Suggestion> | null>;
 
   /**
-   * Invoked after a chosen suggestion is inserted into the editor. Optional.
+   * Invoked after a chosen suggestion successfully changes the editor. Optional.
    */
   onDidInsertSuggestion?(meta: {
     /** The current text editor. */
     editor: TextEditor;
     /** The position of the cursor when the suggestion was chosen. */
     triggerPosition: Point;
-    /** The suggestion that was chosen. */
+    /** The normalized suggestion that was chosen, including resolved detail. */
     suggestion: Suggestion;
   }): void;
 
@@ -513,7 +522,9 @@ Providers are selected once for each request, including `excludeLowerPriority`, 
 
 Completion filtering uses the same JavaScript scoring kernel as buffer-word completion. Whole-word matches take priority over literal prefixes, case-insensitive prefixes and other subsequences, in that order; `sortText`, match score and original order break ties within a tier. This deliberately replaces the previous general-purpose path matcher, so some subsequence ordering and highlight paths differ. Queries longer than 256 UTF-16 units yield no filtered matches.
 
-Autocomplete owns cached match results, including lazy UTF-16 highlight indices. Providers may reuse suggestion objects: changes to `replacementPrefix`, `filterText` or displayed text invalidate the corresponding cache. `filterText` controls ranking while highlights always address the displayed label, including rendered snippet text. Explicit `characterMatchIndices` remain provider-owned and must address that label for the current request. There is no need to compute them just to avoid repeated matching during rendering.
+Autocomplete owns cached match results, including lazy UTF-16 highlight indices. It copies a provider's suggestions for the request and leaves provider-owned objects unchanged. A cumulative update can reuse an unchanged object or give a new object the same `id` to update an existing row. Detail resolution receives the original provider object and a cancellation signal for that selection. `filterText` controls ranking while highlights address the displayed label, including rendered snippet text. Explicit `characterMatchIndices` must address that label for the current request.
+
+One provider's failure leaves healthy providers' suggestions available. If a provider already published a valid partial list, that list remains available. Disposing its registration cancels its ongoing work and retires its suggestions. Deduplication keeps items with distinct edits or provider actions and can still hide an equivalent fallback word.
 
 Pick the value from this ladder, by what the provider _knows_ rather than by how much you want to see it:
 
@@ -531,6 +542,8 @@ Two rules keep the ladder honest. **A tier above 2 has to be earned by narrownes
 ## Behavior
 
 `autocomplete` guesses at the “prefix” — that is, the range of characters before the cursor that might be part of whatever suggestion you will insert.
+
+Acceptance uses the buffer revision captured for the selected item. Explicit text edits target the primary cursor. A compatible single-line plain text edit can also apply at another cursor if the corresponding range contains identical text and does not overlap other edits. Additional edits run once at their original locations. The editor validates the full plan before one atomic change. Additional zero-width insertions can share a boundary with a replacement, and overlapping edits decline the entire plan.
 
 For some languages, you may need to override this by specifying a `replacementPrefix` value for each suggestion:
 

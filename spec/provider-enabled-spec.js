@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 require("./spec-helper");
 
 describe("Dynamically enabled autocomplete providers", () => {
@@ -109,12 +110,12 @@ describe("Dynamically enabled autocomplete providers", () => {
 
   it("does not activate on a disabled provider's trigger characters", () => {
     provider.triggerCharacters = new Set(["."]);
-    editor.insertText(".");
+    typeText(editor, ".");
     expect(provider.getSuggestions).not.toHaveBeenCalled();
     expect(fallback.getSuggestions).not.toHaveBeenCalled();
 
     provider.enabled = true;
-    editor.insertText(".");
+    typeText(editor, ".");
     expect(provider.getSuggestions.calls.count()).toBe(1);
   });
 });

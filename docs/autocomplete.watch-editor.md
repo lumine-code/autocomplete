@@ -68,7 +68,7 @@ module.exports = {
 
 ## Behavior
 
-Watching binds `focus` and `blur` on the editor's view: focus makes it the current editor for the popup, blur hides the suggestion list. If the editor already has focus when you call it, it becomes current immediately.
+An editor becomes the popup's target when it gains focus. Moving focus outside the editor dismisses its suggestions and cancels pending requests and confirmation. If the editor already has focus when you call `watchEditor`, it becomes the target immediately.
 
 Labels are matched as a set union — a provider is eligible if _any_ of its labels appears in the array you passed. There is no ordering or priority between labels; ranking is still decided by the providers' own `inclusionPriority`, `suggestionPriority`, and `excludeLowerPriority`.
 
@@ -76,7 +76,7 @@ The service is `undefined` until `autocomplete` activates. Store the function wh
 
 ## Teardown
 
-Dispose what `watchEditor` returns when the editor goes away; if it was the current editor, the popup detaches from it. Disposing does not destroy the editor.
+Dispose what `watchEditor` returns to end a registration while the editor stays alive. Autocomplete also ends the registration when the editor is destroyed. If it was the current editor, the popup detaches from it.
 
 Autocomplete also disposes everything it holds when it deactivates, so a returned `Disposable` that outlives the provider is safe to dispose twice.
 

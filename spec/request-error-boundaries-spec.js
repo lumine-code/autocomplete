@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const { conditionPromise } = require("./spec-helper");
 
 describe("Autocomplete event request failures", () => {
@@ -56,7 +57,7 @@ describe("Autocomplete event request failures", () => {
   });
 
   for (const source of ["provider", "scope query"]) {
-    for (const trigger of ["manual", "automatic", "delayed automatic", "indent retry"]) {
+    for (const trigger of ["manual", "automatic", "delayed automatic"]) {
       it(`owns a ${source} rejection from ${trigger}`, async () => {
         let scopeFailed = false;
         if (source === "scope query") {
@@ -78,15 +79,10 @@ describe("Autocomplete event request failures", () => {
         }
         if (trigger === "manual") {
           lumine.commands.dispatch(lumine.views.getView(editor), "autocomplete:activate");
-        } else if (trigger === "indent retry") {
-          manager.shouldDisplaySuggestions = true;
-          manager.cancelHideSuggestionListRequest();
-          spyOn(editor, "isApplyingAutomaticIndentation").and.returnValue(true);
-          editor.getBuffer().insert([0, 0], " ");
         } else {
           lumine.config.set("autocomplete.enableAutoActivation", true);
           lumine.config.set("autocomplete.autoActivationDelay", trigger === "automatic" ? 0 : 10);
-          editor.insertText("o");
+          typeText(editor, "o");
         }
         await conditionPromise(() => Boolean(pending));
         await pending.catch(() => {});

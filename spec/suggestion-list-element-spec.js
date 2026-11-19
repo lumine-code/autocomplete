@@ -1,4 +1,5 @@
 const SuggestionListElement = require("../lib/suggestion-list-element");
+const SuggestionList = require("../lib/suggestion-list");
 const { conditionPromise } = require("./spec-helper");
 
 const fragmentToHtml = (fragment) => {
@@ -9,6 +10,18 @@ const fragmentToHtml = (fragment) => {
 
 describe("Suggestion List Element", () => {
   let [suggestionListElement] = [];
+  let list;
+
+  const attachList = () => {
+    suggestionListElement.dispose();
+    list = new SuggestionList();
+    list.initialize();
+    suggestionListElement = list.suggestionListElement;
+    jasmine.attachToDOM(suggestionListElement.element);
+  };
+
+  const itemsWith = (count, prefix = "item") =>
+    Array.from({ length: count }, (_, index) => ({ text: `${prefix}${index}` }));
 
   beforeEach(async () => {
     const textGrammarPackage = await lumine.packages.activatePackage("language-text");
@@ -17,9 +30,9 @@ describe("Suggestion List Element", () => {
   });
 
   afterEach(() => {
-    if (suggestionListElement) {
-      suggestionListElement.dispose();
-    }
+    if (list) list.dispose();
+    else suggestionListElement?.dispose();
+    list = null;
     suggestionListElement = null;
   });
 
@@ -100,11 +113,8 @@ describe("Suggestion List Element", () => {
     });
 
     it("starts on the entry a provider preselected", () => {
-      suggestionListElement.model = {
-        items: [{ text: "first" }, { text: "second", preselect: true }, { text: "third" }],
-        select() {},
-      };
-      suggestionListElement.render();
+      attachList();
+      list.changeItems([{ text: "first" }, { text: "second", preselect: true }, { text: "third" }]);
       expect(suggestionListElement.selectedIndex).toBe(1);
       // Still the default selection: the user has not moved yet, so
       // confirm-if-non-default must not treat this as a deliberate choice.
@@ -112,11 +122,8 @@ describe("Suggestion List Element", () => {
     });
 
     it("starts on the first entry when none is preselected", () => {
-      suggestionListElement.model = {
-        items: [{ text: "first" }, { text: "second" }],
-        select() {},
-      };
-      suggestionListElement.render();
+      attachList();
+      list.changeItems([{ text: "first" }, { text: "second" }]);
       expect(suggestionListElement.selectedIndex).toBe(0);
     });
 
@@ -148,30 +155,49 @@ describe("Suggestion List Element", () => {
   });
 
   describe("deferred rendering", () => {
-    const modelWith = (count) => ({
-      items: Array.from({ length: count }, (_, index) => ({ text: `item${index}` })),
-      select() {},
-    });
-
     beforeEach(() => {
-      jasmine.attachToDOM(suggestionListElement.element);
+      attachList();
       suggestionListElement.maxVisibleSuggestions = 2;
     });
 
     it("caps the list and selects from the same capped list", () => {
-      // The cap is observed from `autocomplete.maxSuggestions` when a model is
-      // attached; set directly here because this element is built without one.
-      suggestionListElement.maxItems = 3;
-      suggestionListElement.model = modelWith(10);
-      suggestionListElement.render();
+      lumine.config.set("autocomplete.maxSuggestions", 3);
+      const items = itemsWith(10);
+      list.changeItems(items);
 
       expect(suggestionListElement.visibleItems().length).toBe(3);
-      // Selection must read the capped list too: indexing the model's full
-      // list agreed only while the selection could not exceed the cap.
-      suggestionListElement.selectedIndex = 5;
-      expect(suggestionListElement.getSelectedItem()).toBeUndefined();
-      suggestionListElement.selectedIndex = 2;
-      expect(suggestionListElement.getSelectedItem()).toBe(suggestionListElement.model.items[2]);
+      list.setSelectedIndex(5);
+      expect(list.getSelectedItem()).toBe(items[0]);
+      list.setSelectedIndex(2);
+      expect(list.getSelectedItem()).toBe(items[2]);
+    });
+
+    it("shows resolved documentation for a selected item retained beyond the cap", () => {
+      lumine.config.set("autocomplete.maxSuggestions", 2);
+      const first = { text: "alpha" };
+      const choice = { text: "alpine" };
+      list.changeItems([first, choice]);
+      list.setSelectedIndex(1);
+      list.changeItems(
+        [
+          { text: "aardvark" },
+          { text: "atlas", description: "Atlas", descriptionMoreURL: "https://example.com/atlas" },
+          first,
+          choice,
+        ],
+        { preserveSelection: true },
+      );
+
+      expect(list.getSelectedItem()).toBe(choice);
+      expect(suggestionListElement.descriptionContent.textContent).toBe("");
+
+      list.replaceItem(choice, {
+        ...choice,
+        description: "Alpine",
+        descriptionMoreURL: "https://example.com/alpine",
+      });
+      expect(suggestionListElement.descriptionContent.textContent).toBe("Alpine");
+      expect(suggestionListElement.descriptionMoreLink.href).toBe("https://example.com/alpine");
     });
 
     it("exposes the cap as a setting", () => {
@@ -181,8 +207,7 @@ describe("Suggestion List Element", () => {
     });
 
     it("renders the deferred rows when the selection lands on the first of them", () => {
-      suggestionListElement.model = modelWith(5);
-      suggestionListElement.render();
+      list.changeItems(itemsWith(5));
       // Rows 0 through `maxVisibleSuggestions` are rendered eagerly; the rest
       // wait for a scroll or a selection.
       expect(suggestionListElement.ol.childNodes.length).toBe(3);
@@ -195,8 +220,7 @@ describe("Suggestion List Element", () => {
     });
 
     it("renders the deferred rows a chunk at a time", () => {
-      suggestionListElement.model = modelWith(120);
-      suggestionListElement.render();
+      list.changeItems(itemsWith(120));
       expect(suggestionListElement.ol.childNodes.length).toBe(3);
 
       suggestionListElement.renderExtraItems();
@@ -208,8 +232,7 @@ describe("Suggestion List Element", () => {
 
     it("keeps rendering until every deferred row exists", async () => {
       jasmine.useRealClock();
-      suggestionListElement.model = modelWith(120);
-      suggestionListElement.render();
+      list.changeItems(itemsWith(120));
 
       suggestionListElement.renderExtraItems();
       await conditionPromise(() => suggestionListElement.extraItems == null);
@@ -217,8 +240,7 @@ describe("Suggestion List Element", () => {
     });
 
     it("renders far enough to reach a selection beyond the first chunk", () => {
-      suggestionListElement.model = modelWith(120);
-      suggestionListElement.render();
+      list.changeItems(itemsWith(120));
 
       // A page-down or an end key jumps past a chunk boundary, and
       // `renderSelectedItem` runs before the next frame arrives.
@@ -228,13 +250,11 @@ describe("Suggestion List Element", () => {
     });
 
     it("drops the pending tail when the list is replaced", () => {
-      suggestionListElement.model = modelWith(120);
-      suggestionListElement.render();
+      list.changeItems(itemsWith(120));
       suggestionListElement.renderExtraItems();
       expect(suggestionListElement.extraItemsFrame).not.toBeNull();
 
-      suggestionListElement.model = modelWith(4);
-      suggestionListElement.render();
+      list.changeItems(itemsWith(4));
       expect(suggestionListElement.extraItemsFrame).toBeNull();
       expect(suggestionListElement.extraItems.length).toBe(1);
     });
@@ -259,9 +279,8 @@ describe("Suggestion List Element", () => {
       };
 
       it("reaches the capped last item with End without extending the scroll range", () => {
-        suggestionListElement.maxItems = 7;
-        suggestionListElement.model = modelWith(120);
-        suggestionListElement.render();
+        lumine.config.set("autocomplete.maxSuggestions", 7);
+        list.changeItems(itemsWith(120));
         const height = expectedHeight(7);
         expect(suggestionListElement.scroller.scrollHeight).toBe(height);
 
@@ -277,8 +296,7 @@ describe("Suggestion List Element", () => {
       });
 
       it("keeps page navigation and Home usable while the tail is deferred", () => {
-        suggestionListElement.model = modelWith(120);
-        suggestionListElement.render();
+        list.changeItems(itemsWith(120));
         const height = expectedHeight(120);
 
         suggestionListElement.moveSelectionPageDown();
@@ -298,15 +316,13 @@ describe("Suggestion List Element", () => {
       });
 
       it("replaces the previous scroll range when a pending list becomes shorter", () => {
-        suggestionListElement.model = modelWith(120);
-        suggestionListElement.render();
+        list.changeItems(itemsWith(120));
         suggestionListElement.moveSelectionPageDown();
         suggestionListElement.moveSelectionPageDown();
         expect(suggestionListElement.extraItemsFrame).not.toBeNull();
         expect(suggestionListElement.scroller.scrollTop).toBeGreaterThan(0);
 
-        suggestionListElement.model = modelWith(4);
-        suggestionListElement.render();
+        list.changeItems(itemsWith(4));
 
         expect(suggestionListElement.extraItemsFrame).toBeNull();
         expect(suggestionListElement.scroller.scrollTop).toBe(0);
@@ -316,18 +332,14 @@ describe("Suggestion List Element", () => {
 
       it("keeps a replacement list deferred after repeated rendering requests in one frame", async () => {
         jasmine.useRealClock();
-        suggestionListElement.model = modelWith(120);
-        suggestionListElement.render();
+        list.changeItems(itemsWith(120));
         suggestionListElement.scroller.scrollTop = suggestionListElement.ol.firstChild.offsetHeight;
         // Both requests arrive before the browser runs the next frame, as can
         // happen when scrolling and changing selection together.
         suggestionListElement.renderExtraItems();
         suggestionListElement.renderExtraItems();
 
-        const replacement = modelWith(40);
-        replacement.items = replacement.items.map((item) => ({ text: `new_${item.text}` }));
-        suggestionListElement.model = replacement;
-        suggestionListElement.render();
+        list.changeItems(itemsWith(40, "new_item"));
         for (let frame = 0; frame < 4; frame++) await new Promise(requestAnimationFrame);
 
         expect(suggestionListElement.ol.children.length).toBe(3);
@@ -342,13 +354,11 @@ describe("Suggestion List Element", () => {
       });
 
       it("removes the previous scroll range when the list becomes empty", () => {
-        suggestionListElement.model = modelWith(120);
-        suggestionListElement.render();
+        list.changeItems(itemsWith(120));
         suggestionListElement.renderExtraItems();
         expect(suggestionListElement.extraItemsFrame).not.toBeNull();
 
-        suggestionListElement.model.items = [];
-        suggestionListElement.itemsChanged();
+        list.changeItems([]);
 
         expect(suggestionListElement.extraItemsFrame).toBeNull();
         expect(suggestionListElement.ol.children.length).toBe(0);
@@ -357,11 +367,9 @@ describe("Suggestion List Element", () => {
       });
 
       it("does not leave a scrollbar after refreshing to a list that fits", () => {
-        suggestionListElement.model = modelWith(120);
-        suggestionListElement.render();
+        list.changeItems(itemsWith(120));
 
-        suggestionListElement.model = modelWith(2);
-        suggestionListElement.render();
+        list.changeItems(itemsWith(2));
 
         expect(suggestionListElement.scroller.scrollHeight).toBe(expectedHeight(2));
         expect(suggestionListElement.scroller.scrollHeight).toBe(
@@ -592,12 +600,12 @@ describe("Suggestion List Element", () => {
     it("updates the list item", async () => {
       const suggestion = { text: "foo" };
       const newSuggestion = { text: "foo", description: "foobar", rightLabel: "foo" };
-      suggestionListElement.model = { items: [newSuggestion] };
-      suggestionListElement.selectedIndex = 0;
-      suggestionListElement.renderItem(suggestion, 0);
+      attachList();
+      list.changeItems([suggestion]);
+      await conditionPromise(() => suggestionListElement.element.querySelector(".right-label"));
       expect(suggestionListElement.element.querySelector(".right-label").innerText).toBe("");
 
-      suggestionListElement.itemChanged({ suggestion: newSuggestion, index: 0 });
+      list.replaceItem(suggestion, newSuggestion);
 
       await conditionPromise(
         () => suggestionListElement.element.querySelector(".right-label").innerText,
@@ -813,7 +821,7 @@ describe("Suggestion List Element", () => {
   describe("moveSelectionUp", () => {
     it("decreases the selected index when the current index is greater than zero", () => {
       spyOn(suggestionListElement, "setSelectedIndex");
-      suggestionListElement.selectedIndex = 1;
+      suggestionListElement.model = { selectedIndex: 1 };
 
       suggestionListElement.moveSelectionUp();
 
@@ -822,6 +830,7 @@ describe("Suggestion List Element", () => {
 
     it("dismisses the suggestion list if the current selection is at the start of the list and moveToCancel is true", () => {
       const model = {
+        selectedIndex: 0,
         activeEditor: {
           moveUp() {},
         },
@@ -831,7 +840,6 @@ describe("Suggestion List Element", () => {
       spyOn(model, "cancel");
 
       suggestionListElement.model = model;
-      suggestionListElement.selectedIndex = 0;
       suggestionListElement.moveToCancel = true;
 
       suggestionListElement.moveSelectionUp();
@@ -854,7 +862,7 @@ describe("Suggestion List Element", () => {
     it("increases the selected index if the current selection is not at the end of the list", () => {
       spyOn(suggestionListElement, "visibleItems").and.returnValue(["a", "b", "c", "d", "e"]);
       spyOn(suggestionListElement, "setSelectedIndex");
-      suggestionListElement.selectedIndex = 3;
+      suggestionListElement.model = { selectedIndex: 3 };
 
       suggestionListElement.moveSelectionDown();
 
@@ -863,6 +871,7 @@ describe("Suggestion List Element", () => {
 
     it("dismisses the suggestion list if the current selection is at the end of the list and moveToCancel is true", () => {
       const model = {
+        selectedIndex: 4,
         activeEditor: {
           moveDown() {},
         },
@@ -873,7 +882,6 @@ describe("Suggestion List Element", () => {
       spyOn(suggestionListElement, "visibleItems").and.returnValue(["a", "b", "c", "d", "e"]);
 
       suggestionListElement.model = model;
-      suggestionListElement.selectedIndex = 4;
       suggestionListElement.moveToCancel = true;
 
       suggestionListElement.moveSelectionDown();
@@ -885,7 +893,7 @@ describe("Suggestion List Element", () => {
     it("cycles to the first element in the suggestion list when the current suggestion is at the end of the list", () => {
       spyOn(suggestionListElement, "visibleItems").and.returnValue(["a", "b", "c", "d", "e"]);
       spyOn(suggestionListElement, "setSelectedIndex");
-      suggestionListElement.selectedIndex = 4;
+      suggestionListElement.model = { selectedIndex: 4 };
 
       suggestionListElement.moveSelectionDown();
 
@@ -894,47 +902,45 @@ describe("Suggestion List Element", () => {
   });
 
   describe("moveSelectionPageUp", () => {
-    it("dismisses the list if moveToCancel is true", () => {
-      const model = {
-        activeEditor: {
-          getScreenLineCount: () => 42,
-          moveUp() {},
-        },
-        cancel() {},
-      };
-      spyOn(model.activeEditor, "moveUp");
-      spyOn(model, "cancel");
-
-      suggestionListElement.model = model;
+    it("pages the editor at the first entry when moveToCancel is enabled", () => {
+      attachList();
+      list.changeItems(itemsWith(12));
+      list.activeEditor = { pageUp: jasmine.createSpy("pageUp") };
+      const cancel = spyOn(list, "cancel");
+      suggestionListElement.maxVisibleSuggestions = 10;
       suggestionListElement.moveToCancel = true;
 
       suggestionListElement.moveSelectionPageUp();
 
-      expect(model.activeEditor.moveUp).toHaveBeenCalledWith(42);
-      expect(model.cancel).toHaveBeenCalled();
+      expect(list.activeEditor.pageUp).toHaveBeenCalled();
+      expect(cancel).toHaveBeenCalled();
     });
   });
 
   describe("moveSelectionPageDown", () => {
-    it("dismisses the list if moveToCancel is true", () => {
-      const model = {
-        activeEditor: {
-          getScreenLineCount: () => 42,
-          moveDown() {},
-        },
-        cancel() {},
+    it("pages the list before paging the editor at the last entry", () => {
+      attachList();
+      const items = itemsWith(12);
+      list.changeItems(items);
+      list.activeEditor = {
+        pageDown: jasmine.createSpy("pageDown"),
+        getCursorBufferPosition: () => ({ row: 0, column: 0 }),
+        getGrammar: () => null,
       };
-      spyOn(model.activeEditor, "moveDown");
-      spyOn(model, "cancel");
-      spyOn(suggestionListElement, "visibleItems").and.returnValue(["a"]);
-
-      suggestionListElement.model = model;
+      const cancel = spyOn(list, "cancel");
+      suggestionListElement.maxVisibleSuggestions = 10;
       suggestionListElement.moveToCancel = true;
 
       suggestionListElement.moveSelectionPageDown();
+      expect(list.getSelectedItem()).toBe(items[10]);
+      suggestionListElement.moveSelectionPageDown();
+      expect(list.getSelectedItem()).toBe(items[11]);
+      expect(list.activeEditor.pageDown).not.toHaveBeenCalled();
+      expect(cancel).not.toHaveBeenCalled();
 
-      expect(model.activeEditor.moveDown).toHaveBeenCalledWith(42);
-      expect(model.cancel).toHaveBeenCalled();
+      suggestionListElement.moveSelectionPageDown();
+      expect(list.activeEditor.pageDown).toHaveBeenCalled();
+      expect(cancel).toHaveBeenCalled();
     });
   });
 

@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const path = require("path");
 const { conditionPromise, timeoutPromise, waitForAutocomplete } = require("./spec-helper");
 
@@ -45,13 +46,42 @@ describe("Autocomplete Manager commit characters", () => {
       { text: "constructor", commitCharacters: ["(", "."] },
     ]);
 
-    editor.insertText("c");
+    typeText(editor, "c");
     await waitForAutocomplete(editor);
 
-    editor.insertText("(");
+    typeText(editor, "(");
     await conditionPromise(() => editor.getText() === "console(");
 
     expect(editor.getCursorBufferPosition()).toEqual([0, 8]);
+  });
+
+  it("only commits a character delivered as editor input", async () => {
+    registerProvider([{ text: "console", commitCharacters: ["("] }]);
+    typeText(editor, "c");
+    await waitForAutocomplete(editor);
+
+    editor.insertText("(");
+    expect(editor.getText()).toBe("c(");
+    expect(mainModule.autocompleteManager.suggestionList.isActive()).toBeFalse();
+    expect(provider.calls).toBe(1);
+  });
+
+  it("starts a new request when the commit character is also a trigger", async () => {
+    registerProvider([{ text: "console", commitCharacters: ["."] }]);
+    provider.triggerCharacters = new Set(["."]);
+    const original = provider.getSuggestions.bind(provider);
+    const suggestions = spyOn(provider, "getSuggestions").and.callFake((options) =>
+      options.triggerCharacter === "." ? [{ text: "log" }] : original(),
+    );
+    typeText(editor, "c");
+    await waitForAutocomplete(editor);
+
+    typeText(editor, ".");
+    await conditionPromise(() => suggestions.calls.count() === 2);
+    expect(editor.getText()).toBe("console.");
+    expect(suggestions.calls.mostRecent().args[0].triggerCharacter).toBe(".");
+    await waitForAutocomplete(editor);
+    expect(mainModule.autocompleteManager.suggestionList.items[0].text).toBe("log");
   });
 
   it("accepts whichever suggestion is highlighted, not the first one", async () => {
@@ -60,11 +90,11 @@ describe("Autocomplete Manager commit characters", () => {
       { text: "constructor", commitCharacters: ["("] },
     ]);
 
-    editor.insertText("c");
+    typeText(editor, "c");
     await waitForAutocomplete(editor);
     lumine.commands.dispatch(editorView, "core:move-down");
 
-    editor.insertText("(");
+    typeText(editor, "(");
     await conditionPromise(() => editor.getText() === "constructor(");
   });
 
@@ -74,10 +104,10 @@ describe("Autocomplete Manager commit characters", () => {
       { text: "constructor", commitCharacters: ["("] },
     ]);
 
-    editor.insertText("c");
+    typeText(editor, "c");
     await waitForAutocomplete(editor);
 
-    editor.insertText("(");
+    typeText(editor, "(");
     await conditionPromise(() => editor.getText() === "console(");
 
     // One undo takes back the undo-confirm-retype the commit character made,
@@ -96,17 +126,17 @@ describe("Autocomplete Manager commit characters", () => {
       { text: "constructor", commitCharacters: ["("] },
     ]);
 
-    editor.insertText("c");
+    typeText(editor, "c");
     lumine.commands.dispatch(editorView, "autocomplete:activate");
     await waitForAutocomplete(editor);
     expect(provider.calls).toBe(1);
 
-    editor.insertText("(");
+    typeText(editor, "(");
     await conditionPromise(() => editor.getText() === "console(");
 
     expect(provider.calls).toBe(1);
     expect(editorView.querySelectorAll(".autocomplete li").length).toBe(0);
-    expect(mainModule.autocompleteManager.confirmingCommitCharacter).toBe(false);
+    expect(mainModule.autocompleteManager.applyingCompletionEdit).toBeFalsy();
   });
 
   it("stays out of the way when the setting is off", async () => {
@@ -116,10 +146,10 @@ describe("Autocomplete Manager commit characters", () => {
       { text: "constructor", commitCharacters: ["("] },
     ]);
 
-    editor.insertText("c");
+    typeText(editor, "c");
     await waitForAutocomplete(editor);
 
-    editor.insertText("(");
+    typeText(editor, "(");
     await timeoutPromise(200);
     expect(editor.getText()).toBe("c(");
   });
@@ -130,10 +160,10 @@ describe("Autocomplete Manager commit characters", () => {
       { text: "constructor", commitCharacters: ["."] },
     ]);
 
-    editor.insertText("c");
+    typeText(editor, "c");
     await waitForAutocomplete(editor);
 
-    editor.insertText("(");
+    typeText(editor, "(");
     await timeoutPromise(200);
     expect(editor.getText()).toBe("c(");
   });
@@ -141,10 +171,10 @@ describe("Autocomplete Manager commit characters", () => {
   it("stays out of the way for a suggestion with no commit characters", async () => {
     registerProvider([{ text: "console" }, { text: "constructor" }]);
 
-    editor.insertText("c");
+    typeText(editor, "c");
     await waitForAutocomplete(editor);
 
-    editor.insertText("(");
+    typeText(editor, "(");
     await timeoutPromise(200);
     expect(editor.getText()).toBe("c(");
   });
@@ -153,8 +183,8 @@ describe("Autocomplete Manager commit characters", () => {
     lumine.config.set("autocomplete.enableAutoActivation", false);
     registerProvider([{ text: "console", commitCharacters: ["("] }]);
 
-    editor.insertText("c");
-    editor.insertText("(");
+    typeText(editor, "c");
+    typeText(editor, "(");
     await timeoutPromise(200);
     expect(editor.getText()).toBe("c(");
     expect(provider.calls).toBe(0);

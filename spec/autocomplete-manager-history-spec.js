@@ -1,3 +1,4 @@
+const { typeText, deleteText } = require("./editor-input");
 require("./spec-helper");
 
 describe("Autocomplete Manager history changes", () => {
@@ -9,7 +10,7 @@ describe("Autocomplete Manager history changes", () => {
     await requests[index].completion;
   };
   const type = (text) => {
-    editor.insertText(text);
+    typeText(editor, text);
     requests[requests.length - 1].completion = latestCompletion();
   };
   const activate = () => {
@@ -78,9 +79,9 @@ describe("Autocomplete Manager history changes", () => {
   for (const character of ["a", "."]) {
     it(`does not activate when undoing a deletion restores ${JSON.stringify(character)}`, () => {
       lumine.config.set("autocomplete.enableAutoActivation", false);
-      editor.insertText(character);
+      typeText(editor, character);
       editor.getBuffer().clearUndoStack();
-      editor.backspace();
+      deleteText(editor);
       manager.cancelSuggestions();
       const previousRequests = requests.length;
       lumine.config.set("autocomplete.enableAutoActivation", character !== ".");
@@ -121,7 +122,7 @@ describe("Autocomplete Manager history changes", () => {
 
   it("cancels delayed activation on undo and schedules it again for later typing", async () => {
     lumine.config.set("autocomplete.autoActivationDelay", 1000);
-    editor.insertText("a");
+    typeText(editor, "a");
     const timer = manager.delayTimeout;
     expect(timer).not.toBeNull();
 
@@ -133,7 +134,7 @@ describe("Autocomplete Manager history changes", () => {
     expect(manager.findSuggestions).not.toHaveBeenCalled();
     expectClosed();
 
-    editor.insertText("b");
+    typeText(editor, "b");
     advanceClock(1000);
     expect(requests.length).toBe(1);
     requests[0].completion = latestCompletion();
@@ -144,8 +145,8 @@ describe("Autocomplete Manager history changes", () => {
   it("does not accept a suggestion when redo restores its commit character", async () => {
     lumine.config.set("autocomplete.enableAutoActivation", false);
     lumine.config.set("autocomplete.commitCharacters", true);
-    editor.insertText("a");
-    editor.insertText("(");
+    typeText(editor, "a");
+    typeText(editor, "(");
     lumine.commands.dispatch(editorView, "core:undo");
     activate();
     await resolveRequest(0);

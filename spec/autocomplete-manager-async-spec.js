@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const { timeoutPromise, conditionPromise } = require("./spec-helper");
 const path = require("path");
 
@@ -68,7 +69,7 @@ describe("Async providers", () => {
 
     it("should provide completions when a provider returns a promise that results in an array of suggestions", async () => {
       editor.moveToBottom();
-      editor.insertText("o");
+      typeText(editor, "o");
 
       await conditionPromise(() => {
         const context = autocompleteManager.suggestionContext;
@@ -123,10 +124,10 @@ describe("Async providers", () => {
       editorView = lumine.views.getView(editor);
 
       editor.moveToBottom();
-      editor.insertText("o");
+      typeText(editor, "o");
 
       // Waiting will kick off the suggestion request
-      editor.insertText("\r");
+      typeText(editor, "\r");
       await timeoutPromise(100);
 
       // Expect nothing because the provider has not come back yet

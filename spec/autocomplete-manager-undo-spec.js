@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const { conditionPromise, waitForAutocomplete } = require("./spec-helper");
 const path = require("path");
 
@@ -39,7 +40,7 @@ describe("Autocomplete Manager undo transactions", () => {
       // Trigger an autocompletion
       editor.moveToBottom();
       editor.moveToBeginningOfLine();
-      editor.insertText("f");
+      typeText(editor, "f");
 
       await waitForAutocomplete(editor);
 

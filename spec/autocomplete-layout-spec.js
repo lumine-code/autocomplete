@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 describe("Autocomplete popup layout", () => {
   let editor, editorView, manager, list, view;
 
@@ -41,7 +42,7 @@ describe("Autocomplete popup layout", () => {
     editor = await lumine.workspace.open("");
     editorView = lumine.views.getView(editor);
     editorView.setUpdatedSynchronously(false);
-    editor.insertText("k");
+    typeText(editor, "k");
     editorView.focus();
     const pack = await lumine.packages.activatePackage("autocomplete");
     manager = pack.mainModule.autocompleteManager;
@@ -53,6 +54,73 @@ describe("Autocomplete popup layout", () => {
     manager.cancelNewSuggestionsRequest();
     list.hide();
     await frames(2);
+  });
+
+  it("exposes the active option on the focused input and restores its attributes on close", async () => {
+    const input = editorView.getInputElement();
+    expect(document.activeElement).toBe(input);
+    input.setAttribute("role", "textbox");
+    show(suggestions(2));
+    await frames();
+
+    expect(input.getAttribute("role")).toBe("combobox");
+    expect(input.getAttribute("aria-autocomplete")).toBe("list");
+    expect(input.getAttribute("aria-expanded")).toBe("true");
+    expect(input.getAttribute("aria-controls")).toBe(view.ol.id);
+    expect(view.ol.getAttribute("role")).toBe("listbox");
+
+    const firstOption = view.ol.children[0];
+    const secondOption = view.ol.children[1];
+    expect(input.getAttribute("aria-activedescendant")).toBe(firstOption.id);
+    expect(firstOption.getAttribute("role")).toBe("option");
+    expect(firstOption.getAttribute("aria-selected")).toBe("true");
+
+    list.setSelectedIndex(1);
+    await frames();
+    expect(input.getAttribute("aria-activedescendant")).toBe(secondOption.id);
+    expect(firstOption.getAttribute("aria-selected")).toBe("false");
+    expect(secondOption.getAttribute("aria-selected")).toBe("true");
+
+    list.hide();
+    expect(input.getAttribute("role")).toBe("textbox");
+    expect(input.getAttribute("aria-activedescendant")).toBeNull();
+    expect(input.getAttribute("aria-controls")).toBeNull();
+    expect(input.getAttribute("aria-expanded")).toBeNull();
+  });
+
+  it("leaves focus in a sibling control after the editor blurs", async () => {
+    show(suggestions(2));
+    await frames();
+    const otherInput = document.createElement("input");
+    jasmine.attachToDOM(otherInput);
+    otherInput.focus();
+    await frames();
+
+    expect(document.activeElement).toBe(otherInput);
+    expect(lumine.workspace.getActiveTextEditor()).toBe(editor);
+    expect(list.isActive()).toBe(false);
+    expect(editorView.classList.contains("autocomplete-active")).toBe(false);
+  });
+
+  it("releases the old editor's bindings when the popup is remounted in the same frame", async () => {
+    const other = lumine.workspace.buildTextEditor();
+    try {
+      jasmine.attachToDOM(other.getElement());
+      show(suggestions(2));
+      await frames();
+
+      list.show(other, { prefix: "k" });
+      await frames();
+
+      expect(list.activeEditor).toBe(other);
+      expect(editorView.classList.contains("autocomplete-active")).toBe(false);
+      expect(editorView.getInputElement().hasAttribute("aria-activedescendant")).toBe(false);
+      expect(lumine.commands.canDispatch(editorView, "autocomplete:confirm")).toBe(false);
+      expect(other.getElement().classList.contains("autocomplete-active")).toBe(true);
+    } finally {
+      list.hide();
+      other.destroy();
+    }
   });
 
   it("keeps a selection made before the popup's first measurement", async () => {

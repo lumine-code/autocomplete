@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 require("./spec-helper");
 
 describe("Autocomplete cancellation", () => {
@@ -9,7 +10,7 @@ describe("Autocomplete cancellation", () => {
     await requests[index].completion;
   };
   const type = (text) => {
-    editor.insertText(text);
+    typeText(editor, text);
     requests[requests.length - 1].completion = latestCompletion();
   };
   const expectClosed = () => {
@@ -82,7 +83,7 @@ describe("Autocomplete cancellation", () => {
 
   it("cancels the activation timer and schedules a new one for later typing", async () => {
     lumine.config.set("autocomplete.autoActivationDelay", 1000);
-    editor.insertText("a");
+    typeText(editor, "a");
     const timer = manager.delayTimeout;
     expect(timer).not.toBeNull();
 
@@ -95,12 +96,30 @@ describe("Autocomplete cancellation", () => {
     expect(requests.length).toBe(0);
     expectClosed();
 
-    editor.insertText("b");
+    typeText(editor, "b");
     advanceClock(1000);
     expect(requests.length).toBe(1);
     requests[0].completion = latestCompletion();
     await resolveRequest(0);
     expect(manager.suggestionList.activeEditor).toBe(editor);
+  });
+
+  it("cancels a delayed request when focus moves to a non-editor input", () => {
+    const control = document.createElement("input");
+    lumine.workspace.getElement().append(control);
+    try {
+      lumine.config.set("autocomplete.autoActivationDelay", 1000);
+      typeText(editor, "a");
+      expect(manager.delayTimeout).not.toBeNull();
+      control.focus();
+      advanceClock(1000);
+      expect(manager.editor).toBeNull();
+      expect(manager.delayTimeout).toBeNull();
+      expect(requests.length).toBe(0);
+      expect(document.activeElement).toBe(control);
+    } finally {
+      control.remove();
+    }
   });
 
   it("hides an already visible list and emits cancellation only once", async () => {
@@ -134,7 +153,6 @@ describe("Autocomplete cancellation", () => {
     editor.setCursorBufferPosition([0, 0]);
     manager.cancelSuggestions();
     editor.setCursorBufferPosition([0, 7]);
-    expect(manager.hideTimeout).not.toBeNull();
 
     lumine.commands.dispatch(editorView, "autocomplete:activate");
     requests[0].completion = latestCompletion();
@@ -153,7 +171,7 @@ describe("Autocomplete cancellation", () => {
     const oldEditorView = editorView;
     otherEditor = await lumine.workspace.open("");
     lumine.views.getView(otherEditor).focus();
-    otherEditor.insertText("b");
+    typeText(otherEditor, "b");
     requests[0].completion = latestCompletion();
     const pending = manager.currentSuggestionsPromise;
 
@@ -181,7 +199,7 @@ describe("Autocomplete cancellation", () => {
 
   it("clears pending activation when the package is deactivated", async () => {
     lumine.config.set("autocomplete.autoActivationDelay", 1000);
-    editor.insertText("a");
+    typeText(editor, "a");
     const timer = manager.delayTimeout;
 
     await lumine.packages.deactivatePackage("autocomplete");
@@ -232,13 +250,27 @@ describe("Autocomplete cancellation", () => {
       expectClosed();
     });
 
+    it("does not apply a waiting confirmation after a non-editor input gains focus", async () => {
+      const control = document.createElement("input");
+      lumine.workspace.getElement().append(control);
+      try {
+        control.focus();
+        await finishDetails();
+        expect(editor.getText()).toBe("a");
+        expect(document.activeElement).toBe(control);
+        expectClosed();
+      } finally {
+        control.remove();
+      }
+    });
+
     for (const returnFocus of [false, true]) {
       it(`does not insert in either editor after focus switches ${returnFocus ? "away and back" : "away"}`, async () => {
         lumine.config.set("autocomplete.enableAutoActivation", false);
         otherEditor = await lumine.workspace.open("");
         const otherView = lumine.views.getView(otherEditor);
         otherView.focus();
-        otherEditor.insertText("a");
+        typeText(otherEditor, "a");
         if (returnFocus) editorView.focus();
         await finishDetails();
 
@@ -295,7 +327,7 @@ describe("Autocomplete cancellation", () => {
       await new Promise((resolve) => process.nextTick(resolve));
       suggestion = manager.suggestionList.items[0];
       spyOn(manager, "confirmWithCommitCharacter").and.callThrough();
-      editor.insertText("(");
+      typeText(editor, "(");
       confirmation = manager.confirmWithCommitCharacter.calls.mostRecent().returnValue;
     });
 
@@ -335,7 +367,7 @@ describe("Autocomplete cancellation", () => {
     });
 
     it("does not apply old completion edits after more typing while details are pending", async () => {
-      editor.insertText("b");
+      typeText(editor, "b");
       expect(editor.getText()).toBe("a(b");
       await finishDetails();
 
@@ -343,7 +375,7 @@ describe("Autocomplete cancellation", () => {
     });
 
     it("does not confirm the old suggestion again when its commit character is repeated", async () => {
-      editor.insertText("(");
+      typeText(editor, "(");
       expect(manager.confirmWithCommitCharacter.calls.count()).toBe(1);
       expect(requests.length).toBe(2);
       expect(editor.getText()).toBe("a((");

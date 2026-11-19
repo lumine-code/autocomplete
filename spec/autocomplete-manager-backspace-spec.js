@@ -1,3 +1,4 @@
+const { typeText, deleteText } = require("./editor-input");
 require("./spec-helper");
 
 describe("Autocomplete Manager deleting a prefix", () => {
@@ -5,7 +6,7 @@ describe("Autocomplete Manager deleting a prefix", () => {
 
   const latestCompletion = () => manager.findSuggestions.calls.mostRecent().returnValue;
   const type = (text) => {
-    editor.insertText(text);
+    typeText(editor, text);
     return latestCompletion();
   };
   const expectClosed = () => {
@@ -58,7 +59,7 @@ describe("Autocomplete Manager deleting a prefix", () => {
       await type("k");
       expect(manager.suggestionList.isActive()).toBe(true);
 
-      editor.backspace();
+      deleteText(editor);
 
       expect(editor.getText()).toBe("");
       expectClosed();
@@ -68,11 +69,11 @@ describe("Autocomplete Manager deleting a prefix", () => {
 
   it("closes as soon as deletion takes the prefix below the configured minimum", async () => {
     lumine.config.set("autocomplete.minimumWordLength", 3);
-    editor.insertText("ke");
+    typeText(editor, "ke");
     await type("y");
     expect(manager.suggestionList.isActive()).toBe(true);
 
-    editor.backspace();
+    deleteText(editor);
 
     expect(editor.getText()).toBe("ke");
     expectClosed();
@@ -80,9 +81,9 @@ describe("Autocomplete Manager deleting a prefix", () => {
   });
 
   it("updates suggestions when the remaining prefix still meets the minimum", async () => {
-    editor.insertText("k");
+    typeText(editor, "k");
     await type("e");
-    editor.backspace();
+    deleteText(editor);
     await latestCompletion();
 
     expect(requests[requests.length - 1].prefix).toBe("k");
@@ -90,10 +91,10 @@ describe("Autocomplete Manager deleting a prefix", () => {
   });
 
   it("closes when the whole selected prefix is deleted", async () => {
-    editor.insertText("ke");
+    typeText(editor, "ke");
     await type("y");
     editor.selectAll();
-    editor.delete();
+    deleteText(editor, "delete");
 
     expect(editor.getText()).toBe("");
     expectClosed();
@@ -108,7 +109,7 @@ describe("Autocomplete Manager deleting a prefix", () => {
       });
     const completion = type("k");
 
-    editor.backspace();
+    deleteText(editor);
     resolveSuggestions([{ text: "keyword" }]);
     await completion;
 
@@ -119,10 +120,10 @@ describe("Autocomplete Manager deleting a prefix", () => {
   it("cancels a delayed refresh when the last character is deleted", async () => {
     await type("k");
     lumine.config.set("autocomplete.autoActivationDelay", 1000);
-    editor.insertText("e");
+    typeText(editor, "e");
     const timer = manager.delayTimeout;
-    editor.backspace();
-    editor.backspace();
+    deleteText(editor);
+    deleteText(editor);
     advanceClock(1000);
 
     expect(window.clearTimeout).toHaveBeenCalledWith(timer);
@@ -133,7 +134,7 @@ describe("Autocomplete Manager deleting a prefix", () => {
 
   it("allows manual activation with an empty prefix after deletion", async () => {
     await type("k");
-    editor.backspace();
+    deleteText(editor);
     expectClosed();
 
     lumine.commands.dispatch(editorView, "autocomplete:activate");
@@ -153,14 +154,14 @@ describe("Autocomplete Manager deleting a prefix", () => {
     expect(requests[0].triggerCharacter).toBe(".");
     expect(manager.suggestionList.isActive()).toBe(true);
 
-    editor.backspace();
+    deleteText(editor);
     expectClosed();
   });
 
   it("allows empty-prefix suggestions after deletion when the minimum is zero", async () => {
     lumine.config.set("autocomplete.minimumWordLength", 0);
     await type("k");
-    editor.backspace();
+    deleteText(editor);
     await latestCompletion();
 
     expect(requests[requests.length - 1].prefix).toBe("");

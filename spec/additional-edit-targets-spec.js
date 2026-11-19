@@ -29,14 +29,18 @@ describe("Additional completion edit targets", () => {
     lease = editor = main = manager = null;
   });
 
-  async function complete(suggestion) {
+  async function show(suggestion) {
     lease = lumine.packages.serviceHub.provide("autocomplete.provider", "1.0.0", {
       scopeSelector: "*",
       getSuggestions: () => [suggestion],
     });
     lumine.commands.dispatch(editor.getElement(), "autocomplete:activate");
     await waitForFrames(() => manager.suggestionList.items?.length === 1);
-    await manager.confirm(manager.suggestionList.items[0]);
+    return manager.suggestionList.items[0];
+  }
+
+  async function complete(suggestion) {
+    return manager.confirm(await show(suggestion));
   }
 
   it("applies an import once while replacing the main prefix at both cursors", async () => {
@@ -65,6 +69,81 @@ describe("Additional completion edit targets", () => {
     expect(editor.getText()).toBe("imported\nalpha alpha");
     editor.undo();
     expect(editor.getText()).toBe("a a");
+  });
+
+  it("preserves a different word at another cursor when applying an explicit edit", async () => {
+    editor.setText("xy co");
+    editor.setCursorBufferPosition([0, 2]);
+    editor.addCursorAtBufferPosition([0, 5]);
+    await complete({
+      text: "console",
+      textEdit: {
+        range: [
+          [0, 3],
+          [0, 5],
+        ],
+        newText: "console",
+      },
+    });
+    expect(editor.getText()).toBe("xy console");
+  });
+
+  it("rejects a visible explicit edit after a different view has changed its coordinates", async () => {
+    editor.setText("header\nco");
+    editor.setCursorBufferPosition([1, 2]);
+    const choice = await show({
+      text: "console",
+      textEdit: {
+        range: [
+          [1, 0],
+          [1, 2],
+        ],
+        newText: "console",
+      },
+    });
+    editor.getBuffer().insert([0, 0], "before\n");
+    expect(await manager.confirm(choice)).toBe(false);
+    expect(editor.getText()).toBe("before\nheader\nco");
+  });
+
+  it("uses buffer coordinates to replace a prefix containing a tab", async () => {
+    editor.setText("Xa\tb");
+    editor.setCursorBufferPosition([0, 4]);
+    await complete({ text: "done", replacementPrefix: "a\tb" });
+    expect(editor.getText()).toBe("Xdone");
+  });
+
+  it("validates overlapping edits before inserting anything", async () => {
+    editor.setText("header\nco");
+    editor.setCursorBufferPosition([1, 2]);
+    const choice = await show({
+      text: "console",
+      textEdit: {
+        range: [
+          [1, 0],
+          [1, 2],
+        ],
+        newText: "console",
+      },
+      additionalTextEdits: [
+        {
+          range: [
+            [0, 0],
+            [0, 0],
+          ],
+          newText: "imported\n",
+        },
+        {
+          range: [
+            [1, 1],
+            [1, 2],
+          ],
+          newText: "overlap",
+        },
+      ],
+    });
+    expect(() => manager.confirm(choice)).toThrowError(RangeError);
+    expect(editor.getText()).toBe("header\nco");
   });
 
   it("sorts mixed range and oldRange additional edits in original buffer coordinates", async () => {

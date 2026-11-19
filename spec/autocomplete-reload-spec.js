@@ -1,3 +1,4 @@
+const { typeText } = require("./editor-input");
 const { TextBuffer, TextEditor, Disposable } = require("lumine");
 const { Readable } = require("stream");
 require("./spec-helper");
@@ -115,7 +116,7 @@ describe("Autocomplete during file reload", () => {
     expectClosed();
 
     lumine.config.set("autocomplete.enableAutoActivation", true);
-    editor.insertText("c");
+    typeText(editor, "c");
     await latestCompletion();
 
     expect(provider.getSuggestions.calls.count()).toBe(1);

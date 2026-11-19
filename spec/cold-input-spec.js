@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const { Range } = require("lumine");
 
 describe("typing before completion is prepared", () => {
   let editor, manager, finish, runtime;
@@ -8,7 +9,8 @@ describe("typing before completion is prepared", () => {
     runtime = { findSuggestions: jasmine.createSpy("findSuggestions") };
     let row = 1,
       column = 0,
-      text = "";
+      text = "",
+      revision = 0;
     const position = () => ({
       row,
       column,
@@ -16,14 +18,29 @@ describe("typing before completion is prepared", () => {
         return this.row === other.row && this.column === other.column;
       },
     });
+    const mode = {};
+    const buffer = {
+      getLanguageMode: () => mode,
+      getTextRevision: () => revision,
+      getPath: () => null,
+    };
+    const cursor = { getBufferPosition: position };
     editor = {
-      getLastCursor: () => ({ getBufferPosition: position }),
+      getLastCursor: () => cursor,
+      getBuffer: () => buffer,
+      getGrammar: () => ({}),
+      getSelectedBufferRanges: () => [new Range([row, column], [row, column])],
+      isReadOnly: () => false,
+      isDestroyed: () => false,
       insertText(value) {
         text += value;
         column += value.length;
-        manager.showOrHideSuggestionListForBufferChanges({
+        manager.didSettleTextInput({
+          kind: "insert",
+          text: value,
+          beforeRevision: revision,
+          afterRevision: ++revision,
           changes: [{ oldText: "", newText: value }],
-          origin: "edit",
         });
       },
       lineTextForBufferRow: () => text,
@@ -55,7 +72,7 @@ describe("typing before completion is prepared", () => {
       fs.readFileSync(path.join(__dirname, "../lib/autocomplete-manager.js"), "utf8"),
       {
         module: isolatedModule,
-        lumine,
+        lumine: { grammars: lumine.grammars, workspace: { isTextEditor: () => false } },
         setTimeout,
         clearTimeout,
         console,
@@ -78,8 +95,8 @@ describe("typing before completion is prepared", () => {
     );
     manager = new isolatedModule.exports();
     manager.editor = editor;
-    manager.buffer = {};
-    spyOn(manager, "processBufferChanges");
+    manager.buffer = buffer;
+    spyOn(manager, "processTextInput");
   });
   afterEach(() => {
     manager.dispose();
@@ -95,37 +112,37 @@ describe("typing before completion is prepared", () => {
     editor.insertText("a");
     editor.insertText("p");
     expect(editor.lineTextForBufferRow(1)).toBe("ap");
-    expect(manager.processBufferChanges).not.toHaveBeenCalled();
+    expect(manager.processTextInput).not.toHaveBeenCalled();
     await complete();
-    expect(manager.processBufferChanges.calls.count()).toBe(1);
+    expect(manager.processTextInput.calls.count()).toBe(1);
   });
 
   it("does not reopen completion after cancellation", async () => {
     editor.insertText("a");
     manager.cancelSuggestions();
     await complete();
-    expect(manager.processBufferChanges).not.toHaveBeenCalled();
+    expect(manager.processTextInput).not.toHaveBeenCalled();
   });
 
   it("does not reopen completion after losing focus", async () => {
     editor.insertText("a");
-    manager.hideSuggestionList();
+    manager.updateCurrentEditor(null);
     await complete();
-    expect(manager.processBufferChanges).not.toHaveBeenCalled();
+    expect(manager.processTextInput).not.toHaveBeenCalled();
   });
 
   it("does not request the old prefix after moving the cursor", async () => {
     editor.insertText("a");
     editor.setCursorBufferPosition([0, 0]);
     await complete();
-    expect(manager.processBufferChanges).not.toHaveBeenCalled();
+    expect(manager.processTextInput).not.toHaveBeenCalled();
   });
 
   it("cancels cold work when the package is disposed", async () => {
     editor.insertText("a");
     manager.dispose();
     await complete();
-    expect(manager.processBufferChanges).not.toHaveBeenCalled();
+    expect(manager.processTextInput).not.toHaveBeenCalled();
   });
 
   it("invalidates a cold manual request immediately when the text changes", async () => {
@@ -134,6 +151,6 @@ describe("typing before completion is prepared", () => {
     await complete();
     await pending;
     expect(runtime.findSuggestions).not.toHaveBeenCalled();
-    expect(manager.processBufferChanges.calls.count()).toBe(1);
+    expect(manager.processTextInput.calls.count()).toBe(1);
   });
 });

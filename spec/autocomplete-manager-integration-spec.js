@@ -1,3 +1,4 @@
+const { typeText, deleteText } = require("./editor-input");
 const { TextEditor } = require("lumine");
 const {
   conditionPromise,
@@ -101,7 +102,7 @@ describe("Autocomplete Manager integration", () => {
       let directory = temp.mkdirSync();
       expect(editorView.querySelector(".autocomplete")).not.toExist();
 
-      editor.insertText("a");
+      typeText(editor, "a");
       await waitForAutocomplete(editor);
 
       await new Promise((resolve) => {
@@ -119,7 +120,7 @@ describe("Autocomplete Manager integration", () => {
       expect(editorView.querySelector(".autocomplete")).not.toExist();
       for (let i = 0; i < "red".length; i++) {
         let c = "red"[i];
-        editor.insertText(c);
+        typeText(editor, c);
       }
       await waitForAutocomplete(editor);
 
@@ -139,7 +140,7 @@ describe("Autocomplete Manager integration", () => {
       editorView.focus();
 
       editor.insertNewline();
-      editor.insertText("f");
+      typeText(editor, "f");
 
       await waitForAutocomplete(editor);
 
@@ -148,21 +149,21 @@ describe("Autocomplete Manager integration", () => {
 
     it("closes the suggestion list when entering an empty string (e.g. carriage return)", async () => {
       expect(editorView.querySelector(".autocomplete")).not.toExist();
-      editor.insertText("a");
+      typeText(editor, "a");
       await waitForAutocomplete(editor);
 
       expect(editorView.querySelector(".autocomplete")).toExist();
-      editor.insertText("\r");
+      typeText(editor, "\r");
       expect(editorView.querySelector(".autocomplete")).not.toExist();
     });
 
     it("it refocuses the editor after pressing enter", async () => {
       expect(editorView.querySelector(".autocomplete")).not.toExist();
-      editor.insertText("a");
+      typeText(editor, "a");
       await waitForAutocomplete(editor);
 
       expect(editorView.querySelector(".autocomplete")).toExist();
-      editor.insertText("\n");
+      typeText(editor, "\n");
       expect(editorView.querySelector(".autocomplete")).not.toExist();
       expect(editorView).toHaveFocus();
     });
@@ -176,18 +177,18 @@ describe("Autocomplete Manager integration", () => {
 
       // Trigger an autocompletion
       editor.moveToBottom();
-      editor.insertText("a");
+      typeText(editor, "a");
       await waitForAutocomplete(editor);
 
       expect(editorView.querySelector(".autocomplete")).toExist();
 
-      editor.insertText("b");
+      typeText(editor, "b");
       await waitForAutocompleteToDisappear(editor);
     });
 
     it("does not show the suggestion list when pasting", async () => {
       expect(editorView.querySelector(".autocomplete")).not.toExist();
-      editor.insertText("red");
+      typeText(editor, "red");
       await waitForAutocompleteToDisappear(editor);
     });
 
@@ -207,7 +208,7 @@ describe("Autocomplete Manager integration", () => {
       expect(editorView2).not.toHaveFocus();
       expect(editorView2.querySelector(".autocomplete")).not.toExist();
 
-      editor.insertText("r");
+      typeText(editor, "r");
 
       expect(editorView).toHaveFocus();
       expect(editorView2).not.toHaveFocus();
@@ -236,7 +237,7 @@ describe("Autocomplete Manager integration", () => {
       });
 
       expect(editorView.querySelector(".autocomplete")).not.toExist();
-      editor.insertText("a");
+      typeText(editor, "a");
       await waitForAutocomplete(editor);
 
       expect(editorView.querySelector(".autocomplete")).toExist();
@@ -250,16 +251,16 @@ describe("Autocomplete Manager integration", () => {
       });
 
       it("does not show suggestions when working with files that match the blacklist", async () => {
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocompleteToDisappear(editor);
       });
 
       it("caches the blacklist result", async () => {
         spyOn(path, "basename").and.callThrough();
 
-        editor.insertText("a");
-        editor.insertText("b");
-        editor.insertText("c");
+        typeText(editor, "a");
+        typeText(editor, "b");
+        typeText(editor, "c");
 
         await waitForAutocompleteToDisappear(editor);
         const currentPathCalls = path.basename.calls
@@ -269,20 +270,20 @@ describe("Autocomplete Manager integration", () => {
       });
 
       it("shows suggestions when the path is changed to not match the blacklist", async () => {
-        editor.insertText("a");
+        typeText(editor, "a");
 
         await waitForAutocompleteToDisappear(editor);
         lumine.commands.dispatch(editorView, "autocomplete:cancel");
 
         editor.getBuffer().setPath("not-blackslisted.txt");
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
         lumine.commands.dispatch(editorView, "autocomplete:cancel");
 
         editor.getBuffer().setPath("blackslisted.md");
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocompleteToDisappear(editor);
       });
     });
@@ -311,7 +312,7 @@ describe("Autocomplete Manager integration", () => {
         });
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
@@ -327,7 +328,7 @@ describe("Autocomplete Manager integration", () => {
         ]);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
@@ -345,7 +346,7 @@ describe("Autocomplete Manager integration", () => {
         ]);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
@@ -535,76 +536,76 @@ describe("Autocomplete Manager integration", () => {
       });
 
       it("calls with word prefix", async () => {
-        editor.insertText("d");
+        typeText(editor, "d");
         await suggestionsPromise;
 
         expect(prefix).toBe("abcd");
       });
 
       it("calls with word prefix after punctuation", async () => {
-        editor.insertText("d.okyea");
-        editor.insertText("h");
+        typeText(editor, "d.okyea");
+        typeText(editor, "h");
         await suggestionsPromise;
 
         expect(prefix).toBe("okyeah");
       });
 
       it("calls with word prefix containing a dash", async () => {
-        editor.insertText("-okyea");
-        editor.insertText("h");
+        typeText(editor, "-okyea");
+        typeText(editor, "h");
         await suggestionsPromise;
 
         expect(prefix).toBe("okyeah");
       });
 
       it("calls with word prefix containing a number", async () => {
-        editor.insertText("4ok");
-        editor.insertText("5");
+        typeText(editor, "4ok");
+        typeText(editor, "5");
         await suggestionsPromise;
 
         expect(prefix).toBe("abc4ok5");
       });
 
       it("calls with space character", async () => {
-        editor.insertText(" ");
+        typeText(editor, " ");
         await suggestionsPromise;
 
         expect(prefix).toBe("");
       });
 
       it("calls with non-word prefix", async () => {
-        editor.insertText(":");
-        editor.insertText(":");
+        typeText(editor, ":");
+        typeText(editor, ":");
         await suggestionsPromise;
 
         expect(prefix).toBe("");
       });
 
       it("calls with non-word bracket", async () => {
-        editor.insertText("[");
+        typeText(editor, "[");
         await suggestionsPromise;
 
         expect(prefix).toBe("");
       });
 
       it("calls with dot prefix", async () => {
-        editor.insertText(".");
+        typeText(editor, ".");
         await suggestionsPromise;
 
         expect(prefix).toBe("");
       });
 
       it("calls with an empty prefix after a quoted assignment", async () => {
-        editor.insertText('=""');
-        editor.insertText(" ");
+        typeText(editor, '=""');
+        typeText(editor, " ");
         await suggestionsPromise;
 
         expect(prefix).toBe("");
       });
 
       it("calls with an empty prefix after a question mark", async () => {
-        editor.insertText("?");
-        editor.insertText(" ");
+        typeText(editor, "?");
+        typeText(editor, " ");
         await suggestionsPromise;
 
         expect(prefix).toBe("");
@@ -625,8 +626,8 @@ describe("Autocomplete Manager integration", () => {
           mainModule.consumeAutocomplete(provider, 4);
 
           lumine.config.set("editor.nonWordCharacters", "-");
-          editor.insertText(" $foo-$ba");
-          editor.insertText("r");
+          typeText(editor, " $foo-$ba");
+          typeText(editor, "r");
           await suggestionsPromise;
 
           expect(prefix).toBe("$bar");
@@ -644,8 +645,8 @@ describe("Autocomplete Manager integration", () => {
           };
 
           mainModule.consumeAutocomplete(provider, 4);
-          editor.insertText(" foo");
-          editor.insertText(".");
+          typeText(editor, " foo");
+          typeText(editor, ".");
           await suggestionsPromise;
 
           expect(prefix).toBe("");
@@ -669,10 +670,10 @@ describe("Autocomplete Manager integration", () => {
         await waitForAutocompleteToDisappear(editor);
       });
 
-      it("does not hide the suggestion list", async () => {
+      it("discards the prior suggestions on a programmatic edit away from the cursor", async () => {
         editor.setText("0\n" + "1\n");
         editor.setCursorBufferPosition([2, 0]);
-        editor.insertText("2");
+        typeText(editor, "2");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
@@ -683,7 +684,7 @@ describe("Autocomplete Manager integration", () => {
           ],
           "*",
         );
-        expect(editorView.querySelector(".autocomplete")).toExist();
+        await waitForAutocompleteToDisappear(editor);
         editor.setTextInBufferRange(
           [
             [0, 0],
@@ -691,7 +692,7 @@ describe("Autocomplete Manager integration", () => {
           ],
           "\n",
         );
-        expect(editorView.querySelector(".autocomplete")).toExist();
+        expect(editorView.querySelector(".autocomplete")).not.toExist();
       });
     });
 
@@ -881,8 +882,8 @@ describe("Autocomplete Manager integration", () => {
             editorView.querySelector(".autocomplete .suggestion-description strong").textContent,
           ).toEqual("mmmmmmmmmmmmmmmmmmmmmmmmmm");
 
-          editor.insertText("b");
-          editor.insertText("c");
+          typeText(editor, "b");
+          typeText(editor, "c");
           await waitForAutocomplete(editor);
 
           suggestionList = editorView.querySelector(".autocomplete autocomplete-suggestion-list");
@@ -917,8 +918,8 @@ describe("Autocomplete Manager integration", () => {
           listWidth = parseInt(suggestionList.style.width);
           expect(listWidth).toBeGreaterThan(0);
 
-          editor.insertText("b");
-          editor.insertText("c");
+          typeText(editor, "b");
+          typeText(editor, "c");
           await waitForAutocomplete(editor);
 
           suggestionList = editorView.querySelector(".autocomplete autocomplete-suggestion-list");
@@ -1070,9 +1071,9 @@ describe("Autocomplete Manager integration", () => {
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
-        editor.insertText("i");
-        editor.insertText("e");
-        editor.insertText("m");
+        typeText(editor, "i");
+        typeText(editor, "e");
+        typeText(editor, "m");
 
         await waitForAutocomplete(editor);
 
@@ -1095,9 +1096,9 @@ describe("Autocomplete Manager integration", () => {
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
-        editor.insertText("a");
-        editor.insertText("p");
-        editor.insertText("p");
+        typeText(editor, "a");
+        typeText(editor, "p");
+        typeText(editor, "p");
 
         await waitForAutocomplete(editor);
 
@@ -1119,9 +1120,9 @@ describe("Autocomplete Manager integration", () => {
           ]);
 
           editor.moveToBottom();
-          editor.insertText("x");
-          editor.insertText("y");
-          editor.insertText("z");
+          typeText(editor, "x");
+          typeText(editor, "y");
+          typeText(editor, "z");
 
           await waitForAutocomplete(editor);
 
@@ -1142,7 +1143,7 @@ describe("Autocomplete Manager integration", () => {
             spyOn(provider, "getSuggestions").and.callFake(() => [{ snippet: "ab(${1:c})c" }]);
 
             editor.moveToBottom();
-            editor.insertText("c");
+            typeText(editor, "c");
             await waitForAutocomplete(editor);
 
             let word = editorView.querySelector(".autocomplete li span.word");
@@ -1158,9 +1159,9 @@ describe("Autocomplete Manager integration", () => {
             ]);
 
             editor.moveToBottom();
-            editor.insertText("c");
-            editor.insertText("e");
-            editor.insertText("f");
+            typeText(editor, "c");
+            typeText(editor, "e");
+            typeText(editor, "f");
             await waitForAutocomplete(editor);
 
             let word = editorView.querySelector(".autocomplete li span.word");
@@ -1188,7 +1189,7 @@ describe("Autocomplete Manager integration", () => {
       });
 
       it("replaces with the default input prefix", async () => {
-        editor.insertText("abc");
+        typeText(editor, "abc");
         triggerAutocompletion(editor, false, "m");
         await waitForAutocomplete(editor);
 
@@ -1203,8 +1204,8 @@ describe("Autocomplete Manager integration", () => {
       });
 
       it("does not replace non-word prefixes with the chosen suggestion", async () => {
-        editor.insertText("abc");
-        editor.insertText(".");
+        typeText(editor, "abc");
+        typeText(editor, ".");
         await waitForAutocomplete(editor);
 
         expect(editor.getText()).toBe("abc.");
@@ -1235,8 +1236,8 @@ describe("Autocomplete Manager integration", () => {
           mainModule.consumeAutocomplete(provider, 4);
 
           editor.setText("");
-          editor.insertText("$food $fo");
-          editor.insertText("o");
+          typeText(editor, "$food $fo");
+          typeText(editor, "o");
           await waitForAutocomplete(editor);
 
           expect(editorView.querySelector(".autocomplete")).toExist();
@@ -1249,43 +1250,26 @@ describe("Autocomplete Manager integration", () => {
       });
     });
 
-    describe("when a replacementPrefix is not specified, but updated multiple times", () => {
-      // First test checks if suggestion did not have replacementPrefix, isPrefixModified is set.
-      // Second test checks that reused suggestion will still be selected with different prefix.
-
-      // Mutable suggestion
-      let suggestion = { text: "something" };
+    describe("when the same suggestion omits a replacement prefix", () => {
+      const suggestion = Object.freeze({ text: "something" });
 
       beforeEach(() => {
         spyOn(provider, "getSuggestions").and.callFake(() => [suggestion]);
       });
 
-      it("adds isPrefixModified the first time suggestion is shown", async () => {
-        editor.insertText("so");
-        triggerAutocompletion(editor, false, "m");
-        await waitForAutocomplete(editor);
-
-        let suggestionListView = editorView.querySelector(
-          ".autocomplete autocomplete-suggestion-list",
-        );
-        lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
-        expect(editor.getText()).toBe("something");
-        expect(suggestion.replacementPrefix).toBe("som");
-        expect(suggestion.isPrefixModified).toBe(true);
-      });
-
-      it("updates replacementPrefix when returning the same suggestion", async () => {
-        editor.insertText("some");
-        triggerAutocompletion(editor, false, "t");
-        await waitForAutocomplete(editor);
-
-        let suggestionListView = editorView.querySelector(
-          ".autocomplete autocomplete-suggestion-list",
-        );
-        lumine.commands.dispatch(suggestionListView, "autocomplete:confirm");
-        expect(editor.getText()).toBe("something");
-        expect(suggestion.replacementPrefix).toBe("somet");
-        expect(suggestion.isPrefixModified).toBe(true);
+      it("recomputes the replacement prefix for every request", async () => {
+        for (const prefix of ["som", "somet"]) {
+          editor.setText(prefix.slice(0, -1));
+          editor.setCursorBufferPosition([0, prefix.length - 1]);
+          await typeText(editor, prefix.at(-1));
+          await waitForAutocomplete(editor);
+          expect(autocompleteManager.suggestionList.getSelectedItem().replacementPrefix).toBe(
+            prefix,
+          );
+          lumine.commands.dispatch(editorView, "autocomplete:confirm");
+          expect(editor.getText()).toBe("something");
+        }
+        expect("replacementPrefix" in suggestion).toBeFalse();
       });
     });
 
@@ -1300,7 +1284,7 @@ describe("Autocomplete Manager integration", () => {
           { text: "abc", leftLabel: "void" },
         ]);
 
-        editor.insertText("omghey ab");
+        typeText(editor, "omghey ab");
         triggerAutocompletion(editor, false, "c");
         await waitForAutocomplete(editor);
 
@@ -1321,12 +1305,12 @@ describe("Autocomplete Manager integration", () => {
 
         // Trigger an autocompletion
         editor.moveToBottom();
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
 
-        editor.insertText("b");
+        typeText(editor, "b");
         await waitForAutocompleteToDisappear(editor);
       });
 
@@ -1339,10 +1323,10 @@ describe("Autocomplete Manager integration", () => {
 
         // Trigger an autocompletion
         editor.moveToBottom();
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
-        editor.insertText("c");
+        typeText(editor, "c");
         await waitForAutocomplete(editor);
       });
     });
@@ -1353,7 +1337,7 @@ describe("Autocomplete Manager integration", () => {
       });
 
       it("opens to the correct position, and correctly closes on cancel", async () => {
-        editor.insertText("xxxxxxxxxxx ab");
+        typeText(editor, "xxxxxxxxxxx ab");
         triggerAutocompletion(editor, false, "c");
         await waitForAutocomplete(editor);
 
@@ -1367,7 +1351,7 @@ describe("Autocomplete Manager integration", () => {
           { text: "::before", replacementPrefix: "::", leftLabel: "void" },
         ]);
 
-        editor.insertText("xxxxxxxxxxx ab:");
+        typeText(editor, "xxxxxxxxxxx ab:");
         triggerAutocompletion(editor, false, ":");
         await waitForAutocomplete(editor);
 
@@ -1382,7 +1366,7 @@ describe("Autocomplete Manager integration", () => {
           { text: "abc", leftLabel: "void" },
         ]);
 
-        editor.insertText("omghey ab");
+        typeText(editor, "omghey ab");
         triggerAutocompletion(editor, false, "c");
         await waitForAutocomplete(editor);
 
@@ -1398,33 +1382,33 @@ describe("Autocomplete Manager integration", () => {
         let overlayElement;
         // Lots of x's to keep the margin offset away from the left of the window
         // See https://github.com/atom/autocomplete-plus/issues/399
-        editor.insertText("xxxxxxxxxx xx");
-        editor.insertText(" ");
+        typeText(editor, "xxxxxxxxxx xx");
+        typeText(editor, " ");
         await waitForAutocomplete(editor);
 
         overlayElement = editorView.querySelector(".autocomplete");
         expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 14]));
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
         expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 14]));
 
-        editor.insertText("b");
+        typeText(editor, "b");
         await waitForAutocomplete(editor);
 
         expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 14]));
 
-        editor.backspace();
-        editor.backspace();
+        deleteText(editor);
+        deleteText(editor);
         await waitForAutocompleteToDisappear(editor);
 
-        editor.backspace();
+        deleteText(editor);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
-        editor.insertText(" ");
-        editor.insertText("a");
-        editor.insertText("b");
-        editor.insertText("c");
+        typeText(editor, " ");
+        typeText(editor, "a");
+        typeText(editor, "b");
+        typeText(editor, "c");
         await waitForAutocomplete(editor);
 
         overlayElement = editorView.querySelector(".autocomplete");
@@ -1433,9 +1417,9 @@ describe("Autocomplete Manager integration", () => {
 
       it("when broken by a non-word character, the suggestion list is positioned at the beginning of the new word", async () => {
         let overlayElement;
-        editor.insertText("xxxxxxxxxxx");
-        editor.insertText(" abc");
-        editor.insertText("d");
+        typeText(editor, "xxxxxxxxxxx");
+        typeText(editor, " abc");
+        typeText(editor, "d");
         await waitForAutocomplete(editor);
 
         overlayElement = editorView.querySelector(".autocomplete");
@@ -1443,16 +1427,16 @@ describe("Autocomplete Manager integration", () => {
         // TODO: See comment above.
         // expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 12]))
 
-        editor.insertText(" ");
-        editor.insertText("a");
-        editor.insertText("b");
+        typeText(editor, " ");
+        typeText(editor, "a");
+        typeText(editor, "b");
         await waitForAutocomplete(editor);
 
         expect(overlayElement.style.left).toBe(pixelLeftForBufferPosition([0, 17]));
 
-        editor.backspace();
-        editor.backspace();
-        editor.backspace();
+        deleteText(editor);
+        deleteText(editor);
+        deleteText(editor);
         await waitForAutocompleteToDisappear(editor);
       });
     });
@@ -1490,10 +1474,7 @@ describe("Autocomplete Manager integration", () => {
         );
         let firstOption = suggestionListView.querySelector("li");
 
-        // Manually blurring the editor here matches our observation that, when
-        // an actual human clicks on a suggestion, it blurs the editor and ends
-        // up focusing the BODY indirectly.
-        document.activeElement.blur();
+        // Pressing the row prevents the browser's default focus transfer.
         simulateClick(firstOption);
 
         // Ensure the menu is closed…
@@ -1512,7 +1493,7 @@ describe("Autocomplete Manager integration", () => {
         });
 
         it("will insert the text without replacing anything", async () => {
-          editor.insertText("a");
+          typeText(editor, "a");
           triggerAutocompletion(editor, false, ".");
           await waitForAutocomplete(editor);
 
@@ -1780,7 +1761,7 @@ describe("Autocomplete Manager integration", () => {
         lumine.commands.dispatch(editorView, "autocomplete:activate");
         await waitForAutocomplete(editor);
 
-        editor.insertText("b");
+        typeText(editor, "b");
         expect(editorView.querySelector(".autocomplete")).toExist();
       });
 
@@ -1855,13 +1836,13 @@ describe("Autocomplete Manager integration", () => {
           return list.map((t) => ({ text: t }));
         });
 
-        editor.insertText("a");
+        typeText(editor, "a");
         lumine.commands.dispatch(editorView, "autocomplete:activate");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelectorAll(".autocomplete li")).toHaveLength(2);
 
-        editor.insertText("b");
+        typeText(editor, "b");
         await waitForAutocomplete(editor);
       });
     });
@@ -1950,8 +1931,8 @@ defm`);
           [{ text: "quicksort" }, { text: "quack" }].filter((val) => val.text.startsWith(prefix)),
         );
 
-        editor.insertText("q");
-        editor.insertText("u");
+        typeText(editor, "q");
+        typeText(editor, "u");
         await waitForAutocomplete(editor);
 
         // two items displayed, should not close
@@ -1961,7 +1942,7 @@ defm`);
         let autocomplete = editorView.querySelector(".autocomplete");
         expect(autocomplete).toExist();
 
-        editor.insertText("a");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
         autocomplete = editorView.querySelector(".autocomplete");
@@ -1980,12 +1961,12 @@ defm`);
           [{ text: "quicksort" }, { text: "quack" }].filter((val) => val.text.startsWith(prefix)),
         );
 
-        editor.insertText("q");
-        editor.insertText("u");
-        editor.insertText("a");
+        typeText(editor, "q");
+        typeText(editor, "u");
+        typeText(editor, "a");
         await waitForAutocomplete(editor);
 
-        editor.backspace();
+        deleteText(editor);
         await waitForAutocomplete(editor);
 
         let autocomplete = editorView.querySelector(".autocomplete");
@@ -2363,11 +2344,11 @@ defm`);
 
       it("using strict matching does not cause issues when typing", async () => {
         editor.moveToBottom();
-        editor.insertText("h");
-        editor.insertText("e");
-        editor.insertText("l");
-        editor.insertText("l");
-        editor.insertText("o");
+        typeText(editor, "h");
+        typeText(editor, "e");
+        typeText(editor, "l");
+        typeText(editor, "l");
+        typeText(editor, "o");
 
         await conditionPromise(() => autocompleteManager.findSuggestions.calls.count() === 1);
       });
@@ -2426,7 +2407,7 @@ defm`);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
-        editor.insertText("x");
+        typeText(editor, "x");
 
         await waitForAutocompleteToDisappear(editor);
       });
@@ -2436,12 +2417,12 @@ defm`);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
-        editor.insertText("f");
-        editor.insertText("u");
+        typeText(editor, "f");
+        typeText(editor, "u");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
-        editor.insertText("\r");
+        typeText(editor, "\r");
         await waitForAutocompleteToDisappear(editor);
 
         expect(editorView.querySelector(".autocomplete")).not.toExist();
@@ -2467,12 +2448,12 @@ defm`);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
-        editor.insertText("f");
-        editor.insertText("u");
+        typeText(editor, "f");
+        typeText(editor, "u");
         await waitForAutocomplete(editor);
 
         expect(editorView.querySelector(".autocomplete")).toExist();
-        editor.insertText("\r");
+        typeText(editor, "\r");
 
         await waitForAutocompleteToDisappear(editor);
         let key = lumine.keymaps.constructor.buildKeydownEvent("backspace", {
@@ -2495,8 +2476,8 @@ defm`);
         expect(editorView.querySelector(".autocomplete")).not.toExist();
 
         editor.moveToBottom();
-        editor.insertText("f");
-        editor.insertText("u");
+        typeText(editor, "f");
+        typeText(editor, "u");
         await waitForAutocomplete(editor);
         expect(editorView.querySelector(".autocomplete")).toExist();
 
@@ -2530,8 +2511,8 @@ defm`);
         spyOn(autocompleteManager.suggestionList, "changeItems").and.callThrough();
 
         editor.moveToBottom();
-        editor.insertText("q");
-        editor.insertText("u");
+        typeText(editor, "q");
+        typeText(editor, "u");
 
         await waitForAutocomplete(editor);
 
@@ -2572,7 +2553,7 @@ defm`);
         expect(autocompleteManager.compositionInProgress).toBe(false);
         // Composition updates replace the selected composing text themselves.
         // Commit the final character, as Chromium's following textInput does.
-        editor.insertText("i");
+        typeText(editor, "i");
         await waitForAutocomplete(editor);
         expect(
           autocompleteManager.suggestionList.items.some((item) => item.text === "quicksort"),
@@ -2581,9 +2562,9 @@ defm`);
 
       it("does not show the suggestion list when it is triggered then no longer needed", async () => {
         editor.moveToBottom();
-        editor.insertText("f");
-        editor.insertText("u");
-        editor.insertText("\r");
+        typeText(editor, "f");
+        typeText(editor, "u");
+        typeText(editor, "\r");
 
         await timeoutPromise(100);
 
@@ -2622,7 +2603,7 @@ defm`);
     it("sets the width of the view to be wide enough to contain the longest completion without scrolling", async () => {
       editor.moveToBottom();
       editor.insertNewline();
-      editor.insertText("t");
+      typeText(editor, "t");
 
       await waitForAutocomplete(editor);
 
