@@ -26,6 +26,12 @@ For CSS, SCSS and Less completions, install `autocomplete`, `ide` and `ide-css`.
 
 [`spell-check`](https://github.com/lumine-code/linter/blob/master/docs/usage.md#providers) also offers corrections in this list when it is opened manually.
 
+## Inline completions
+
+An inline provider can offer a completion as faint text in the editor. Enable **Inline Completions** to show proposals after typing or deletion. Run `autocomplete:request-inline-completion` to ask for a proposal at the cursor. Accept, dismiss, or cycle through proposals from the Autocomplete menu. The ordinary suggestion list takes priority while open.
+
+Text to be replaced is shown with a strikethrough. Long previews show an ellipsis, and acceptance inserts the complete proposal in one undo step. Inline snippet previews use the Snippets service and expand into editable placeholders when accepted.
+
 ## Matching and ordering
 
 By default, typing narrows the list by subsequence, not just by prefix: `sfn` finds `setFontName`. Prefix matches rank above looser matches, matched characters are highlighted, and a provider's relevance breaks ties. Enable **Use Strict Matching For Built-In Provider** to require the built-in suggestions to start with the typed prefix.

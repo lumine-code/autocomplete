@@ -21,6 +21,7 @@
     "docs",
     "keymaps",
     "lib",
+    "menus",
     "spec",
     "styles",
     "THIRD_PARTY_NOTICES"
@@ -38,6 +39,12 @@
     "format:check": "prettier --check ."
   },
   "configSchema": {
+    "inlineCompletions": {
+      "title": "Inline Completions",
+      "description": "Show suggestions as faint text in the editor when a provider offers inline completions.",
+      "type": "boolean",
+      "default": true
+    },
     "enableAutoActivation": {
       "title": "Show Suggestions On Keystroke",
       "description": "Suggestions will show as you type if this preference is enabled. If it is disabled, you can still see suggestions by using the keymapping for 'autocomplete:activate' (shown below).",
@@ -241,6 +248,11 @@
     }
   },
   "consumedServices": {
+    "autocomplete.inline-provider": {
+      "versions": {
+        "^1.0.0": "consumeInlineCompletion"
+      }
+    },
     "autocomplete.provider": {
       "versions": {
         "^1.0.0": "consumeAutocomplete"

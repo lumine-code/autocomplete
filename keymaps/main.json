@@ -2,6 +2,17 @@
   "lumine-text-editor:not([readonly])": {
     "ctrl-space": "autocomplete:activate"
   },
+  "lumine-text-editor:not([mini]):not([readonly])": {
+    "alt-\\": "autocomplete:request-inline-completion"
+  },
+  "lumine-text-editor.autocomplete-inline-active:not(.autocomplete-active):not([readonly])": {
+    "tab": "autocomplete:accept-inline-completion",
+    "escape": "autocomplete:cancel-inline-completion",
+    "alt-]": "autocomplete:next-inline-completion"
+  },
+  "lumine-text-editor.autocomplete-inline-requesting:not(.autocomplete-active)": {
+    "escape": "autocomplete:cancel-inline-completion"
+  },
   "lumine-text-editor.autocomplete-active": {
     "escape": "autocomplete:cancel"
   }

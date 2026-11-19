@@ -1,0 +1,57 @@
+{
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "Autocomplete",
+          "groupOrder": ["suggestion-list", "inline-completion", "extensions"],
+          "submenu": [
+            {
+              "label": "Show Suggestions",
+              "command": "autocomplete:activate",
+              "group": "suggestion-list",
+              "order": 10
+            },
+            {
+              "label": "Dismiss Suggestions",
+              "command": "autocomplete:cancel",
+              "group": "suggestion-list",
+              "order": 20
+            },
+            {
+              "label": "Open Suggestion Documentation",
+              "command": "autocomplete:navigate-to-description-more-link",
+              "group": "suggestion-list",
+              "order": 30
+            },
+            {
+              "label": "Request Inline Completion",
+              "command": "autocomplete:request-inline-completion",
+              "group": "inline-completion",
+              "order": 10
+            },
+            {
+              "label": "Accept Inline Completion",
+              "command": "autocomplete:accept-inline-completion",
+              "group": "inline-completion",
+              "order": 20
+            },
+            {
+              "label": "Dismiss Inline Completion",
+              "command": "autocomplete:cancel-inline-completion",
+              "group": "inline-completion",
+              "order": 30
+            },
+            {
+              "label": "Next Inline Completion",
+              "command": "autocomplete:next-inline-completion",
+              "group": "inline-completion",
+              "order": 40
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

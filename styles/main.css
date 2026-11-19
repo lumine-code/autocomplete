@@ -1,3 +1,44 @@
+/* Ghost text participates in the editor's own line and block rendering. */
+.autocomplete-inline-ghost-before::before,
+.autocomplete-inline-ghost-after::after,
+.autocomplete-inline-ghost-end::after,
+.autocomplete-inline-ghost-empty::before {
+  content: var(--autocomplete-inline-ghost-text) / "";
+  display: inline-block;
+  max-inline-size: 80ch;
+  color: var(--syntax-color-comment, var(--text-color-subtle));
+  font: inherit;
+  font-style: normal;
+  font-weight: normal;
+  overflow: hidden;
+  text-indent: 0;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: pre;
+  tab-size: var(--autocomplete-inline-tab-size, 4);
+  pointer-events: none;
+  unicode-bidi: isolate;
+}
+
+.autocomplete-inline-ghost-empty::before {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+
+.autocomplete-inline-continuation {
+  color: var(--syntax-color-comment, var(--text-color-subtle));
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+  unicode-bidi: isolate;
+}
+
+.autocomplete-inline-replacement {
+  text-decoration: line-through;
+  text-decoration-color: var(--syntax-color-comment, var(--text-color-subtle));
+}
+
 /* NOTE: the Less version opened with a fallback mixin that defined
    @syntax-color-attribute (#888) for syntax themes predating v1.93. It is
    obsolete: --syntax-color-attribute always resolves via the fallbacks in

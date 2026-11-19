@@ -6,7 +6,8 @@ Fork of [pulsar-edit/pulsar](https://github.com/pulsar-edit/pulsar) (`packages/a
 
 ## Features
 
-- **Inline suggestions**: shows a suggestion list as you type, with a configurable activation delay.
+- **Suggestion list**: shows matches as you type, with a configurable activation delay.
+- **Inline completions**: displays an available provider's suggestion as faint text in the editor and supports accepting, dismissing, or cycling through proposals.
 - **Built-in provider**: completes words from the current buffer or all open buffers out of the box.
 - **Provider support**: consumes external autocomplete providers so any package can contribute suggestions.
 - **Snippet expansion**: expands snippet-based suggestions when a snippets service is available.
@@ -37,6 +38,13 @@ Commands available in `lumine-text-editor.autocomplete-active:not([readonly])`:
 - `autocomplete:confirm`: insert the selected suggestion,
 - `autocomplete:confirm-if-non-default`: insert the suggestion only if it is not the default selection.
 
+Inline completion commands for editable documents watched by Autocomplete.
+
+- `autocomplete:request-inline-completion` requests a preview at the cursor.
+- `autocomplete:accept-inline-completion` applies the displayed proposal.
+- `autocomplete:cancel-inline-completion` dismisses the preview or cancels a pending request.
+- `autocomplete:next-inline-completion` cycles to the next proposal when the provider returns several.
+
 ## Usage
 
 See the [Autocomplete guide](docs/usage.md) for providers, matching, confirmation, documentation and snippets.
@@ -45,6 +53,7 @@ See the [Autocomplete guide](docs/usage.md) for providers, matching, confirmatio
 
 - [`autocomplete.watch-editor`](docs/autocomplete.watch-editor.md): provided to let other packages register an editor to be watched for autocompletion along with the set of providers to use for it.
 - [`autocomplete.provider`](docs/autocomplete.provider.md): consumed to register external suggestion providers that contribute completions.
+- [`autocomplete.inline-provider`](docs/autocomplete.inline-provider.md): consumed to request inline completions and notify providers when an edit is accepted.
 - `snippets`: consumed to expand snippet-based suggestions when confirmed.
 
 ## Contributing
