@@ -27,6 +27,35 @@ describe("Inline completion ghost text", () => {
     return node && (pseudo ? window.getComputedStyle(node, pseudo) : node);
   }
 
+  function suffixCoordinates() {
+    for (const line of element.querySelectorAll(".line")) {
+      const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const offset = node.textContent.indexOf("Z");
+        if (offset < 0) continue;
+        const range = document.createRange();
+        range.setStart(node, offset);
+        range.setEnd(node, offset + 1);
+        const { left, top, width } = range.getBoundingClientRect();
+        return { left, top, width };
+      }
+    }
+    throw new Error("The editor did not render the suffix glyph.");
+  }
+
+  function renderedGeometry() {
+    element.component.updateSync();
+    const position = (selector) => {
+      const { left, top } = element.querySelector(selector).getBoundingClientRect();
+      return { left, top };
+    };
+    return {
+      cursor: position(".cursor"),
+      input: position(".hidden-input"),
+      suffix: suffixCoordinates(),
+    };
+  }
+
   it("renders at an empty line and at end of line without editing the buffer", () => {
     const start = element.pixelPositionForBufferPosition([0, 0]);
     expect(view.show({ position: [0, 0], text: 'say("hello")' })).toBeTrue();
@@ -42,6 +71,72 @@ describe("Inline completion ghost text", () => {
     expect(rendered(".autocomplete-inline-ghost-end", "::after").content).toContain("(hello)");
     expect(element.pixelPositionForBufferPosition([0, 3])).toEqual(end);
     expect(editor.getText()).toBe("say");
+  });
+
+  it("keeps the caret and native input at a midline preview while moving the suffix", () => {
+    const source = "abcZtail";
+    const anchor = [0, 3];
+    editor.setText(source);
+    editor.setCursorBufferPosition(anchor);
+    element.focus();
+    const before = renderedGeometry();
+    expect(before.input).toEqual(before.cursor);
+    expect(before.suffix.width).toBeGreaterThan(0);
+
+    expect(view.show({ position: anchor, text: " a long inline preview " })).toBeTrue();
+    const preview = renderedGeometry();
+    expect(preview.suffix.left).toBeGreaterThan(before.suffix.left + 10);
+    expect(preview.suffix.top).toBe(before.suffix.top);
+    expect(preview.cursor).toEqual(before.cursor);
+    expect(preview.input).toEqual(before.input);
+    expect(editor.getCursorBufferPosition().toArray()).toEqual(anchor);
+    expect(editor.getText()).toBe(source);
+
+    view.clear();
+    expect(renderedGeometry()).toEqual(before);
+    expect(editor.getCursorBufferPosition().toArray()).toEqual(anchor);
+  });
+
+  it("keeps a later caret aligned with its real text when the preview anchor comes first", () => {
+    const caret = [0, 5];
+    editor.setText("abcZtail");
+    editor.setCursorBufferPosition(caret);
+    element.focus();
+    const before = renderedGeometry();
+
+    expect(view.show({ position: [0, 3], text: " a long inline preview " })).toBeTrue();
+    const preview = renderedGeometry();
+    const suffixShift = preview.suffix.left - before.suffix.left;
+    const cursorShift = preview.cursor.left - before.cursor.left;
+    expect(suffixShift).toBeGreaterThan(10);
+    // The editor rounds caret coordinates, while DOM text ranges have fractional pixels.
+    expect(Math.abs(cursorShift - suffixShift)).toBeLessThanOrEqual(1);
+    expect(preview.cursor.top).toBe(before.cursor.top);
+    expect(preview.input).toEqual(preview.cursor);
+    expect(editor.getCursorBufferPosition().toArray()).toEqual(caret);
+  });
+
+  it("keeps the caret and native input before a ghost at the start of a wrapped row", () => {
+    editor.update({ softWrapped: true, softWrapMaxColumn: 10 });
+    editor.setText("abcdefghijZtail");
+    const anchor = [0, 10];
+    editor.setCursorBufferPosition(anchor);
+    element.focus();
+    const before = renderedGeometry();
+    expect(editor.getCursorScreenPosition().toArray()).toEqual([1, 0]);
+    expect(before.input).toEqual(before.cursor);
+
+    expect(view.show({ position: anchor, text: " ghost " })).toBeTrue();
+    const preview = renderedGeometry();
+    expect(element.querySelector(".autocomplete-inline-ghost-before")).not.toBeNull();
+    expect(preview.suffix.left).toBeGreaterThan(before.suffix.left + 10);
+    expect(preview.suffix.top).toBe(before.suffix.top);
+    expect(preview.cursor).toEqual(before.cursor);
+    expect(preview.input).toEqual(before.input);
+    expect(editor.getCursorBufferPosition().toArray()).toEqual(anchor);
+
+    view.clear();
+    expect(renderedGeometry()).toEqual(before);
   });
 
   it("adds a bounded multiline block and keeps subsequent source text readable", () => {
