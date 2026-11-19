@@ -90,6 +90,25 @@ describe("Incremental completion provider publication", () => {
     expect(manager.suggestionAbortController).toBeNull();
   });
 
+  it("displays a provider's cumulative updates while its final list is pending", async () => {
+    const slow = deferred();
+    const alpha = { text: "alpha" };
+    const atlas = { text: "atlas" };
+    const source = provider(({ publishSuggestions }) => {
+      publishSuggestions([alpha]);
+      return slow.promise;
+    });
+    const pending = request();
+    await visible("alpha");
+    const { publishSuggestions } = source.getSuggestions.calls.mostRecent().args[0];
+    publishSuggestions([atlas]);
+    await visible("atlas");
+    expect(manager.suggestionList.items.map(({ text }) => text)).toEqual(["atlas"]);
+    slow.resolve([alpha, atlas]);
+    await pending;
+    expect(manager.suggestionList.items.map(({ text }) => text)).toEqual(["alpha", "atlas"]);
+  });
+
   it("never publishes a ready provider excluded by a pending provider's inclusion priority", async () => {
     const slow = deferred();
     provider(() => slow.promise, { inclusionPriority: 20 });

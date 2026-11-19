@@ -393,6 +393,12 @@ type ServiceProvider = {
      */
     signal: AbortSignal;
     /**
+     * Optionally publish a cumulative suggestion list while the final result
+     * is pending. Each list replaces this provider's previous interim list.
+     * Return the complete list when finished.
+     */
+    publishSuggestions?(suggestions: Suggestion[]): void;
+    /**
      * Whether the user activated this menu manually or had it appear
      * automatically while typing.
      */
