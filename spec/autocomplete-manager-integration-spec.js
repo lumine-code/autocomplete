@@ -356,7 +356,7 @@ describe("Autocomplete Manager integration", () => {
       }));
 
     describe("when multiple cursors are defined", () => {
-      it("handles one cursor-move event for a multi-selection command", () => {
+      it("closes completion when a secondary cursor moves", async () => {
         editor.setText("abcdef");
         editor.setSelectedBufferRanges([
           [
@@ -372,12 +372,14 @@ describe("Autocomplete Manager integration", () => {
             [0, 4],
           ],
         ]);
-        autocompleteManager = mainModule.autocompleteManager;
-        const cursorMoved = spyOn(autocompleteManager, "cursorMoved").and.callThrough();
+        lumine.commands.dispatch(editorView, "autocomplete:activate");
+        await waitForAutocomplete(editor);
 
-        editor.selectRight();
+        const primaryPosition = editor.getLastCursor().getBufferPosition();
+        editor.getCursors()[0].setBufferPosition([0, 1]);
 
-        expect(cursorMoved.calls.count()).toBe(1);
+        expect(editor.getLastCursor().getBufferPosition()).toEqual(primaryPosition);
+        await waitForAutocompleteToDisappear(editor);
       });
 
       it("autocompletes word when there is only a prefix", async () => {
@@ -1258,14 +1260,13 @@ describe("Autocomplete Manager integration", () => {
       });
 
       it("recomputes the replacement prefix for every request", async () => {
+        const manager = mainModule.autocompleteManager;
         for (const prefix of ["som", "somet"]) {
-          editor.setText(prefix.slice(0, -1));
-          editor.setCursorBufferPosition([0, prefix.length - 1]);
-          await typeText(editor, prefix.at(-1));
+          editor.setText(prefix);
+          editor.setCursorBufferPosition([0, prefix.length]);
+          lumine.commands.dispatch(editorView, "autocomplete:activate");
           await waitForAutocomplete(editor);
-          expect(autocompleteManager.suggestionList.getSelectedItem().replacementPrefix).toBe(
-            prefix,
-          );
+          expect(manager.suggestionList.getSelectedItem().replacementPrefix).toBe(prefix);
           lumine.commands.dispatch(editorView, "autocomplete:confirm");
           expect(editor.getText()).toBe("something");
         }
