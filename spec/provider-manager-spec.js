@@ -163,6 +163,7 @@ describe("Provider Manager", () => {
       expect(notifications.length).toBe(1);
       expect(notifications[0].getType()).toBe("error");
       expect(notifications[0].getMessage()).toBe("Invalid autocomplete provider rejected");
+      expect(notifications[0].getOptions().detailCollapsed).toBe(true);
       expect(notifications[0].getOptions().description).toBe(
         "A package registered an autocomplete provider that does not satisfy the `autocomplete.provider` service contract.",
       );
